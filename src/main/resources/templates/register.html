@@ -1,26 +1,43 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Register</title>
+    <link rel="stylesheet" th:href="@{css/style.css}">
 </head>
+
 <body>
+    <div class="login-container">
+        <h1>Create account</h1>
+        <p>Please enter your details</p>
+        <form action="/register" method="post">
+            <label>Full Name</label>
+            <input type="text" name="name" placeholder="Enter your name" required /><br><br>
 
-<h2>Register</h2>
+            <label>Email</label>
+            <input type="email" name="email" placeholder="Enter your email" required /><br><br>
 
-<form>
-    <label>Name</label>
-    <input type="text" name="name"/><br><br>
+            <label>Password</label>
+            <input type="password" name="password" placeholder="*********" required /><br><br>
 
-    <label>Email</label>
-    <input type="email" name="email"/><br><br>
+            <label>Confirm Password</label>
+            <input type="password" name="confirmPasssword" placeholder="*********" required>
 
-    <label>Password</label>
-    <input type="password" name="password"/><br><br>
-    
+            <div class="options">
+                <label>
+                    <input type="checkbox" required>
+                    <span>I agree to the terms</span>
+                </label>
+            </div>
+            <button type="submit" class="btn-login">Sign up</button>
+        </form>
 
-    <button type="submit">Register</button>
-</form>
+        <p>
+            Already have an account?
+            <a th:href="@{/login}">Sign in</a>
+        </p>
+    </div>
 
-<a href=""></a>
 </body>
+
 </html>
