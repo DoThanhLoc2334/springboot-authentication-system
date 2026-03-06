@@ -1,0 +1,44 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <head th:replace="~{common/fragments :: html_head('Login')}"></head>
+
+  <body>
+    <div th:replace="~{common/fragments :: navbar}"></div>
+    <div class="login-container">
+      <h1>Welcome back</h1>
+      <p>Please enter your details</p>
+
+      <form th:action="@{/login}" method="post">
+        <label>Email</label>
+        <input
+          type="email"
+          name="email"
+          placeholder="Enter your email"
+          required
+        /><br /><br />
+
+        <label>Password</label>
+        <input
+          type="password"
+          name="password"
+          placeholder="********"
+          required
+        /><br /><br />
+
+        <div class="options">
+          <label> <input type="checkbox" />Remember me </label>
+          <a href="#">Forgot password</a>
+        </div>
+
+        <button type="submit" class="btn-login">Sign in</button>
+      </form>
+
+      <p>
+        Don't have an account?
+        <a th:href="@{/register}">Sign up for free</a>
+      </p>
+    </div>
+
+    <div th:replace="~{common/fragments :: html_scripts}"></div>
+  </body>
+</html>
