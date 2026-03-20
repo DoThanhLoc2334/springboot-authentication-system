@@ -1,45 +1,25 @@
 package com.dtl.springboot_auth_system.controller;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.dtl.springboot_auth_system.dto.RegisterRequest;
+import com.dtl.springboot_auth_system.dto.LoginRequest;
+import com.dtl.springboot_auth_system.service.AuthService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
-@Controller
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
 
-    @GetMapping("/register")
-    public String showRegisterPage() {
-        return "auth/register";
+    @Autowired
+    private AuthService authService;
+
+    @PostMapping("/register")
+    public String register(@RequestBody RegisterRequest request) {
+        return authService.register(request);
     }
 
-    @GetMapping("/login")
-    public String showLoginPage() {
-        return "auth/login";
-    }
-
-    @GetMapping("/profile")
-    public String showProfilePage() {
-        // Trỏ đúng vào thư mục user/ đã tạo
-        return "user/profile";
-    }
-
-    @GetMapping("/admin/dashboard")
-    public String showAdminDashboard() {
-        // Trỏ vào thư mục admin/ file admin-dashboard.html
-        return "admin/admin-dashboard";
-    }
-
-    @GetMapping("/403")
-    public String accessDenied() {
-        return "error/403";
-    }
-
-    @GetMapping("/forgot-password")
-    public String showForgotPasswordPage() {
-        return "auth/forgot-password";
-    }
-
-    @GetMapping("/reset-password")
-    public String showResetPasswordPage() {
-        return "auth/reset-password";
+    @PostMapping("/login")
+    public String login(@RequestBody LoginRequest request){
+        return authService.login(request);
     }
 }
