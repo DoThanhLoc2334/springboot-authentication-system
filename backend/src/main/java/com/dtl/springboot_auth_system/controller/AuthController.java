@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.dtl.springboot_auth_system.dto.JwtResponse;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,7 +26,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        String result = authService.login(request);
-        return ResponseEntity.ok(result);
+        // BƯỚC QUAN TRỌNG: Bạn phải khai báo biến 'token' ở đây
+        String token = authService.login(request);
+
+        // Sau đó mới truyền biến 'token' vào JwtResponse
+        return ResponseEntity.ok(new JwtResponse(token, "Bearer"));
     }
 }
