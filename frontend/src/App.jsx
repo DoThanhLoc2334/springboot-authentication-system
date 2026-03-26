@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ProductList from "./pages/ProductList";
 
 function App() {
   return (
@@ -31,10 +32,8 @@ function App() {
             path="categories"
             element={<div>Trang Danh mục (Sẽ làm sau)</div>}
           />
-          <Route
-            path="products"
-            element={<div>Trang Sản phẩm (Sẽ làm sau)</div>}
-          />
+          // ✅ ĐÚNG: Phải gọi Component ProductList vào đây
+          <Route path="products" element={<ProductList />} />
         </Route>
 
         {/* Mặc định: Nếu vào "/" hoặc trang lạ, đá về /admin/dashboard */}
