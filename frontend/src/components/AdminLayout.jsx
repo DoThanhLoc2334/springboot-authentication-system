@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { Layout, Menu, Button, theme } from "antd";
+import { Layout, Menu, theme, message } from "antd";
 import {
   DashboardOutlined,
   AppstoreOutlined,
-  ShoppingOutlined,
+  ShoppingCartOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
-import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
@@ -20,24 +20,21 @@ const AdminLayout = () => {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    message.success("Đăng xuất thành công!");
     navigate("/login");
   };
 
+  // Định nghĩa Menu items - Đăng xuất nằm ở cuối cùng
   const menuItems = [
+    { key: "dashboard", icon: <DashboardOutlined />, label: "Tổng quan" },
+    { key: "categories", icon: <AppstoreOutlined />, label: "Danh mục" },
+    { key: "products", icon: <ShoppingCartOutlined />, label: "Sản phẩm" },
+    { type: "divider" }, // Vạch kẻ ngăn cách
     {
-      key: "/admin/dashboard",
-      icon: <DashboardOutlined />,
-      label: <Link to="/admin/dashboard">Tổng quan</Link>,
-    },
-    {
-      key: "/admin/categories",
-      icon: <AppstoreOutlined />,
-      label: <Link to="/admin/categories">Danh mục</Link>,
-    },
-    {
-      key: "/admin/products",
-      icon: <ShoppingOutlined />,
-      label: <Link to="/admin/products">Sản phẩm</Link>,
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Đăng xuất",
+      danger: true,
     },
   ];
 
@@ -59,35 +56,29 @@ const AdminLayout = () => {
             alignItems: "center",
             color: "white",
             fontWeight: "bold",
+            overflow: "hidden",
           }}
         >
-          {!collapsed && "HUTECH ADMIN"}
+          {collapsed ? "H" : "HUTECH ADMIN"}
         </div>
+
         <Menu
           theme="dark"
           mode="inline"
-          selectedKeys={[location.pathname]}
+          // Tự động sáng đúng ô dựa trên đường dẫn URL
+          selectedKeys={[location.pathname.split("/").pop()]}
           items={menuItems}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: 20,
-            width: "100%",
-            padding: "0 16px",
+          onClick={({ key }) => {
+            if (key === "logout") {
+              handleLogout();
+            } else {
+              navigate(`/admin/${key}`);
+            }
           }}
-        >
-          <Button
-            type="primary"
-            danger
-            icon={<LogoutOutlined />}
-            block
-            onClick={handleLogout}
-          >
-            {!collapsed && "Đăng xuất"}
-          </Button>
-        </div>
+        />
+        {/* ĐÃ XÓA PHẦN DIV ABSOLUTE Ở ĐÂY */}
       </Sider>
+
       <Layout>
         <Header style={{ padding: 0, background: colorBgContainer }} />
         <Content style={{ margin: "16px" }}>
