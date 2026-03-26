@@ -1,62 +1,109 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Layout, Menu, Button, theme } from "antd";
+import {
+  DashboardOutlined,
+  AppstoreOutlined,
+  ShoppingOutlined,
+  LogoutOutlined,
+} from "@ant-design/icons";
+import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
+
+const { Header, Sider, Content } = Layout;
 
 const AdminLayout = () => {
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");
   };
 
-  return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      {/* Sidebar bên trái */}
-      <nav
-        style={{
-          width: "250px",
-          background: "#2c3e50",
-          color: "white",
-          padding: "20px",
-        }}
-      >
-        <h3>HUTECH Admin</h3>
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          <li style={{ margin: "15px 0" }}>
-            <Link to="/admin/dashboard" style={{ color: "white" }}>
-              Tổng quan
-            </Link>
-          </li>
-          <li style={{ margin: "15px 0" }}>
-            <Link to="/admin/categories" style={{ color: "white" }}>
-              Danh mục
-            </Link>
-          </li>
-          <li style={{ margin: "15px 0" }}>
-            <Link to="/admin/products" style={{ color: "white" }}>
-              Sản phẩm
-            </Link>
-          </li>
-        </ul>
-        <button onClick={handleLogout} style={{ marginTop: "50px" }}>
-          Đăng xuất
-        </button>
-      </nav>
+  const menuItems = [
+    {
+      key: "/admin/dashboard",
+      icon: <DashboardOutlined />,
+      label: <Link to="/admin/dashboard">Tổng quan</Link>,
+    },
+    {
+      key: "/admin/categories",
+      icon: <AppstoreOutlined />,
+      label: <Link to="/admin/categories">Danh mục</Link>,
+    },
+    {
+      key: "/admin/products",
+      icon: <ShoppingOutlined />,
+      label: <Link to="/admin/products">Sản phẩm</Link>,
+    },
+  ];
 
-      {/* Nội dung chính bên phải */}
-      <main style={{ flex: 1, padding: "20px", background: "#ecf0f1" }}>
-        <header
+  return (
+    <Layout style={{ minHeight: "100vh" }}>
+      <Sider
+        collapsible
+        collapsed={collapsed}
+        onCollapse={(value) => setCollapsed(value)}
+      >
+        <div
           style={{
-            borderBottom: "1px solid #bdc3c7",
-            paddingBottom: "10px",
-            marginBottom: "20px",
+            height: 32,
+            margin: 16,
+            background: "rgba(255, 255, 255, 0.2)",
+            borderRadius: 6,
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            color: "white",
+            fontWeight: "bold",
           }}
         >
-          <h2>Bảng điều khiển</h2>
-        </header>
-        {/* Nơi hiển thị nội dung các trang con */}
-        <Outlet />
-      </main>
-    </div>
+          {!collapsed && "HUTECH ADMIN"}
+        </div>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[location.pathname]}
+          items={menuItems}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: 20,
+            width: "100%",
+            padding: "0 16px",
+          }}
+        >
+          <Button
+            type="primary"
+            danger
+            icon={<LogoutOutlined />}
+            block
+            onClick={handleLogout}
+          >
+            {!collapsed && "Đăng xuất"}
+          </Button>
+        </div>
+      </Sider>
+      <Layout>
+        <Header style={{ padding: 0, background: colorBgContainer }} />
+        <Content style={{ margin: "16px" }}>
+          <div
+            style={{
+              padding: 24,
+              minHeight: 360,
+              background: colorBgContainer,
+              borderRadius: borderRadiusLG,
+            }}
+          >
+            <Outlet />
+          </div>
+        </Content>
+      </Layout>
+    </Layout>
   );
 };
 
