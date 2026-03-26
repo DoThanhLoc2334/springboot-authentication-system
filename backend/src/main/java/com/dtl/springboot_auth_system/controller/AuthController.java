@@ -19,8 +19,6 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        // Thay vì trả về String, ta dùng ResponseEntity để trả về Status Code chuẩn (ví
-        // dụ 200 OK)
         authService.register(request);
         return ResponseEntity.ok("Đăng ký tài khoản thành công!");
     }
