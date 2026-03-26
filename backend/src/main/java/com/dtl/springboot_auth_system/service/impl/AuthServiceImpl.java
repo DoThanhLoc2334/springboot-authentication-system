@@ -47,13 +47,19 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String login(LoginRequest request) {
+        // 1. Kiểm tra Username có tồn tại không
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+                .orElseThrow(() -> new RuntimeException("Tài khoản hoặc mật khẩu không chính xác"));
 
+        // 2. Kiểm tra mật khẩu (Sử dụng matches của BCrypt)
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Sai mật khẩu");
+            throw new RuntimeException("Tài khoản hoặc mật khẩu không chính xác");
         }
 
-        return "Đăng nhập thành công!";
+        // 3. Kiểm tra trạng thái tài khoản (nếu có trường enabled)
+        // if (!user.isEnabled()) { throw new RuntimeException("Tài khoản đã bị khóa");
+        // }
+
+        return "Đăng nhập thành công! (Chờ tích hợp JWT)";
     }
 }

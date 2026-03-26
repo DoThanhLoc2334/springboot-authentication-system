@@ -25,8 +25,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request) {
-        // Tương tự, thêm @Valid để kiểm tra xem user/pass có để trống không
-        String token = authService.login(request);
-        return ResponseEntity.ok(token);
+        String result = authService.login(request);
+        return ResponseEntity.ok(result);
     }
 }
