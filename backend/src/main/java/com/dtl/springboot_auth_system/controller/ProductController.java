@@ -63,4 +63,11 @@ public class ProductController {
 
         return dto;
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteProduct(@PathVariable Long id) {
+        // Spring Data JPA sẽ tự động tìm và xóa, nếu không có ID này nó sẽ không làm gì
+        // cả
+        productRepository.deleteById(id);
+    }
 }

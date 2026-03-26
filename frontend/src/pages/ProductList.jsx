@@ -11,6 +11,7 @@ import {
   Input,
   InputNumber,
   Select,
+  Popconfirm,
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import api from "../api/api";
@@ -57,6 +58,16 @@ const ProductList = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      await api.delete(`/products/${id}`);
+      message.success("Đã xóa sản phẩm thành công!");
+      fetchData(); // Load lại bảng sau khi xóa
+    } catch (error) {
+      message.error("Lỗi khi xóa sản phẩm!");
+    }
+  };
+
   const columns = [
     {
       title: "Hình ảnh",
@@ -87,6 +98,24 @@ const ProductList = () => {
       dataIndex: "price",
       key: "price",
       render: (p) => `${p?.toLocaleString()} VNĐ`,
+    },
+    {
+      title: "Hành động",
+      key: "action",
+      render: (_, record) => (
+        <Popconfirm
+          title="Xóa sản phẩm"
+          description="Huy có chắc chắn muốn xóa sản phẩm này không?"
+          onConfirm={() => handleDelete(record.id)}
+          okText="Xóa luôn"
+          cancelText="Hủy"
+          okButtonProps={{ danger: true }}
+        >
+          <Button type="link" danger>
+            Xóa
+          </Button>
+        </Popconfirm>
+      ),
     },
   ];
 
