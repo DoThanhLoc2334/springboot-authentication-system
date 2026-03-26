@@ -1,5 +1,5 @@
 package com.dtl.springboot_auth_system.repository;
-
+import org.springframework.stereotype.Repository;
 import com.dtl.springboot_auth_system.model.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;

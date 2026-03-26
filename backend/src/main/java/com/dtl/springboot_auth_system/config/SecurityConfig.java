@@ -32,11 +32,12 @@ public class SecurityConfig {
     // Spring dùng cái này để load user và so sánh password khi login
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
-    }
+    DaoAuthenticationProvider provider =
+            new DaoAuthenticationProvider(userDetailsService); // ✅ constructor mới
+
+    provider.setPasswordEncoder(passwordEncoder());
+    return provider;
+}
 
     // Dùng để trigger login trong AuthController
     @Bean
