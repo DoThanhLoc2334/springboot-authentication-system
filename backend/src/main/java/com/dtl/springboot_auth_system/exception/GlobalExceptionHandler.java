@@ -13,20 +13,30 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Xử lý lỗi Validation (Dữ liệu đầu vào không hợp lệ)
+    // 1. Xử lý lỗi Validation (đã làm ở Phase 1)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors()
-                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+        ex.getBindingResult().getFieldErrors().forEach(error -> 
+            errors.put(error.getField(), error.getDefaultMessage()));
 
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Validation Failed",
-                LocalDateTime.now(),
-                errors);
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Validation Failed", errors);
     }
 
-    // Xử lý các lỗi Runtime khác (Sẽ bổ sung thêm sau)
+    // 2. THÊM MỚI: Xử lý lỗi trùng User/Email
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
+    }
+
+    // Hàm dùng chung để tạo ErrorResponse cho gọn code
+    private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message, Map<String, String> errors) {
+        ErrorResponse errorResponse = new ErrorResponse(
+            status.value(),
+            message,
+            LocalDateTime.now(),
+            errors
+        );
+        return new ResponseEntity<>(errorResponse, status);
+    }
 }
