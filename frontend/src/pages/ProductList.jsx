@@ -25,6 +25,7 @@ const ProductList = () => {
   const [loading, setLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
+  const [editingProduct, setEditingProduct] = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -46,25 +47,43 @@ const ProductList = () => {
     fetchData();
   }, []);
 
-  const handleCreate = async (values) => {
-    try {
-      await api.post("/products", values);
-      message.success("Thêm sản phẩm thành công!");
-      setIsModalOpen(false);
-      form.resetFields();
-      fetchData(); // Load lại bảng
-    } catch (error) {
-      message.error("Lỗi khi thêm sản phẩm!");
-    }
-  };
-
   const handleDelete = async (id) => {
     try {
       await api.delete(`/products/${id}`);
       message.success("Đã xóa sản phẩm thành công!");
-      fetchData(); // Load lại bảng sau khi xóa
+      fetchData();
     } catch (error) {
       message.error("Lỗi khi xóa sản phẩm!");
+    }
+  };
+
+  const showEditModal = (product) => {
+    setEditingProduct(product);
+    const category = categories.find((c) => c.name === product.categoryName);
+
+    form.setFieldsValue({
+      ...product,
+      categoryId: category?.id,
+    });
+    setIsModalOpen(true);
+  };
+
+  // Hàm này là "trái tim" của CRUD: xử lý cả Thêm và Sửa
+  const handleSave = async (values) => {
+    try {
+      if (editingProduct) {
+        await api.put(`/products/${editingProduct.id}`, values);
+        message.success("Cập nhật sản phẩm thành công!");
+      } else {
+        await api.post("/products", values);
+        message.success("Thêm sản phẩm thành công!");
+      }
+      setIsModalOpen(false);
+      setEditingProduct(null);
+      form.resetFields();
+      fetchData();
+    } catch (error) {
+      message.error("Đã có lỗi xảy ra!");
     }
   };
 
@@ -103,18 +122,21 @@ const ProductList = () => {
       title: "Hành động",
       key: "action",
       render: (_, record) => (
-        <Popconfirm
-          title="Xóa sản phẩm"
-          description="Huy có chắc chắn muốn xóa sản phẩm này không?"
-          onConfirm={() => handleDelete(record.id)}
-          okText="Xóa luôn"
-          cancelText="Hủy"
-          okButtonProps={{ danger: true }}
-        >
-          <Button type="link" danger>
-            Xóa
+        <div style={{ display: "flex", gap: "10px" }}>
+          <Button type="link" onClick={() => showEditModal(record)}>
+            Sửa
           </Button>
-        </Popconfirm>
+          <Popconfirm
+            title="Xóa sản phẩm"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Xóa"
+            cancelText="Hủy"
+          >
+            <Button type="link" danger>
+              Xóa
+            </Button>
+          </Popconfirm>
+        </div>
       ),
     },
   ];
@@ -132,7 +154,11 @@ const ProductList = () => {
         <Button
           type="primary"
           icon={<PlusOutlined />}
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => {
+            setEditingProduct(null); // Đảm bảo reset trạng thái edit khi thêm mới
+            form.resetFields();
+            setIsModalOpen(true);
+          }}
         >
           Thêm sản phẩm
         </Button>
@@ -146,14 +172,19 @@ const ProductList = () => {
       />
 
       <Modal
-        title="Thêm sản phẩm mới"
+        title={editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}
         open={isModalOpen}
-        onCancel={() => setIsModalOpen(false)}
+        onCancel={() => {
+          setIsModalOpen(false);
+          setEditingProduct(null);
+          form.resetFields();
+        }}
         onOk={() => form.submit()}
         okText="Lưu"
         cancelText="Hủy"
       >
-        <Form form={form} layout="vertical" onFinish={handleCreate}>
+        {/* QUAN TRỌNG: Đổi onFinish thành handleSave */}
+        <Form form={form} layout="vertical" onFinish={handleSave}>
           <Form.Item
             name="name"
             label="Tên sản phẩm"
@@ -167,7 +198,6 @@ const ProductList = () => {
             rules={[{ required: true }]}
           >
             <Select placeholder="Chọn danh mục">
-              {/* Thêm đoạn Array.isArray() để kiểm tra chắc chắn là mảng trước khi map */}
               {Array.isArray(categories) &&
                 categories.map((cat) => (
                   <Option key={cat.id} value={cat.id}>

@@ -70,4 +70,38 @@ public class ProductController {
         // cả
         productRepository.deleteById(id);
     }
+
+
+    @PutMapping("/{id}")
+    public ProductDTO updateProduct(@PathVariable Long id, @RequestBody ProductRequest request) {
+        // 1. Kiểm tra xem sản phẩm có tồn tại không
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sản phẩm với ID: " + id));
+
+        // 2. Tìm danh mục mới (đề phòng trường hợp người dùng đổi danh mục cho sản
+        // phẩm)
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy danh mục!"));
+
+        // 3. Cập nhật thông tin từ request vào entity
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
+        product.setDescription(request.getDescription());
+        product.setImageUrl(request.getImageUrl());
+        product.setCategory(category);
+
+        // 4. Lưu sản phẩm đã cập nhật
+        Product updatedProduct = productRepository.save(product);
+
+        // 5. Trả về DTO để Frontend hiển thị lại
+        ProductDTO dto = new ProductDTO();
+        dto.setId(updatedProduct.getId());
+        dto.setName(updatedProduct.getName());
+        dto.setPrice(updatedProduct.getPrice());
+        dto.setDescription(updatedProduct.getDescription());
+        dto.setImageUrl(updatedProduct.getImageUrl());
+        dto.setCategoryName(category.getName());
+
+        return dto;
+    }
 }
