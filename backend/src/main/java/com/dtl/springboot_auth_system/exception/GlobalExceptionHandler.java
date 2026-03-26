@@ -17,8 +17,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error -> 
-            errors.put(error.getField(), error.getDefaultMessage()));
+        ex.getBindingResult().getFieldErrors()
+                .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Validation Failed", errors);
     }
@@ -30,13 +30,19 @@ public class GlobalExceptionHandler {
     }
 
     // Hàm dùng chung để tạo ErrorResponse cho gọn code
-    private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message, Map<String, String> errors) {
+    private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message,
+            Map<String, String> errors) {
         ErrorResponse errorResponse = new ErrorResponse(
-            status.value(),
-            message,
-            LocalDateTime.now(),
-            errors
-        );
+                status.value(),
+                message,
+                LocalDateTime.now(),
+                errors);
         return new ResponseEntity<>(errorResponse, status);
+    }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        // Trả về mã 401 thay vì 400 hoặc 500
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
     }
 }

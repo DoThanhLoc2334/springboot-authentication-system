@@ -2,6 +2,7 @@ package com.dtl.springboot_auth_system.service.impl;
 
 import com.dtl.springboot_auth_system.dto.RegisterRequest;
 import com.dtl.springboot_auth_system.dto.LoginRequest;
+import com.dtl.springboot_auth_system.exception.InvalidCredentialsException;
 import com.dtl.springboot_auth_system.exception.UserAlreadyExistsException;
 import com.dtl.springboot_auth_system.model.Role;
 import com.dtl.springboot_auth_system.model.User;
@@ -47,18 +48,12 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String login(LoginRequest request) {
-        // 1. Kiểm tra Username có tồn tại không
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Tài khoản hoặc mật khẩu không chính xác"));
+                .orElseThrow(() -> new InvalidCredentialsException("Tài khoản hoặc mật khẩu không chính xác"));
 
-        // 2. Kiểm tra mật khẩu (Sử dụng matches của BCrypt)
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Tài khoản hoặc mật khẩu không chính xác");
+            throw new InvalidCredentialsException("Tài khoản hoặc mật khẩu không chính xác");
         }
-
-        // 3. Kiểm tra trạng thái tài khoản (nếu có trường enabled)
-        // if (!user.isEnabled()) { throw new RuntimeException("Tài khoản đã bị khóa");
-        // }
 
         return "Đăng nhập thành công! (Chờ tích hợp JWT)";
     }
