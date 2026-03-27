@@ -1,8 +1,8 @@
 package com.dtl.springboot_auth_system.controller;
 
-import com.dtl.springboot_auth_system.dto.JwtResponse;
-import com.dtl.springboot_auth_system.dto.LoginRequest;
-import com.dtl.springboot_auth_system.dto.RegisterRequest;
+import com.dtl.springboot_auth_system.dto.response.JwtResponse;
+import com.dtl.springboot_auth_system.dto.request.LoginRequest;
+import com.dtl.springboot_auth_system.dto.request.RegisterRequest;
 import com.dtl.springboot_auth_system.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

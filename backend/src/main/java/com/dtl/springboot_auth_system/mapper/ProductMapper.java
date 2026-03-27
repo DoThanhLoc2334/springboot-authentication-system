@@ -1,7 +1,7 @@
 package com.dtl.springboot_auth_system.mapper;
 
 import com.dtl.springboot_auth_system.dto.ProductDTO;
-import com.dtl.springboot_auth_system.dto.ProductRequest;
+import com.dtl.springboot_auth_system.dto.request.ProductRequest;
 import com.dtl.springboot_auth_system.model.Category;
 import com.dtl.springboot_auth_system.model.Product;
 import org.springframework.stereotype.Component;

@@ -1,7 +1,7 @@
 package com.dtl.springboot_auth_system.service;
 
 import com.dtl.springboot_auth_system.dto.ProductDTO;
-import com.dtl.springboot_auth_system.dto.ProductRequest;
+import com.dtl.springboot_auth_system.dto.request.ProductRequest;
 
 import java.util.List;
 

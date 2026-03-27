@@ -1,4 +1,4 @@
-package com.dtl.springboot_auth_system.dto;
+package com.dtl.springboot_auth_system.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
