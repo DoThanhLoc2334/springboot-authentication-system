@@ -8,7 +8,7 @@ import com.dtl.springboot_auth_system.repository.CategoryRepository;
 import com.dtl.springboot_auth_system.repository.ProductRepository;
 import com.dtl.springboot_auth_system.repository.RoleRepository;
 import com.dtl.springboot_auth_system.repository.UserRepository;
-import com.dtl.springboot_auth_system.security.RoleConstants;
+import com.dtl.springboot_auth_system.util.RoleConstants;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;

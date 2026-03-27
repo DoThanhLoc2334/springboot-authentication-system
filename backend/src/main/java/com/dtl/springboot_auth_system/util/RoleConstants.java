@@ -1,4 +1,4 @@
-package com.dtl.springboot_auth_system.security;
+package com.dtl.springboot_auth_system.util;
 
 public final class RoleConstants {
 
