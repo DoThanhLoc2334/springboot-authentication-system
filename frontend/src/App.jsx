@@ -1,46 +1,39 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { ROUTES } from "./constants/routes";
+import Categories from "./pages/Categories";
+import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
 import ProductList from "./pages/ProductList";
 import Register from "./pages/Register";
+import { isAuthenticated } from "./utils/auth";
 
 function App() {
-  return (
-    <Router>
-      <Routes>
-        {/* Public Route: Ai cũng vào được */}
-        <Route path="/login" element={<Login />} />
-        <Route path="register" element={<Register />} />
+  const defaultRoute = isAuthenticated() ? ROUTES.dashboard : ROUTES.login;
 
-        {/* Protected Admin Routes: Chỉ dành cho người có Token */}
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path={ROUTES.login} element={<Login />} />
+        <Route path={ROUTES.register} element={<Register />} />
         <Route
-          path="/admin"
+          path={ROUTES.admin}
           element={
             <ProtectedRoute>
               <AdminLayout />
             </ProtectedRoute>
           }
         >
-          {/* Các trang con sẽ được hiển thị tại vị trí của <Outlet /> trong AdminLayout */}
+          <Route index element={<Navigate to={ROUTES.dashboard} replace />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route
-            path="categories"
-            element={<div>Trang Danh mục (Sẽ làm sau)</div>}
-          />
+          <Route path="categories" element={<Categories />} />
           <Route path="products" element={<ProductList />} />
         </Route>
-
-        {/* Mặc định: Nếu vào "/" hoặc trang lạ, đá về /admin/dashboard */}
-        <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/" element={<Navigate to={defaultRoute} replace />} />
+        <Route path="*" element={<Navigate to={defaultRoute} replace />} />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

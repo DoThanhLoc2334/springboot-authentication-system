@@ -1,11 +1,10 @@
 import { Navigate } from "react-router-dom";
+import { ROUTES } from "../constants/routes";
+import { isAuthenticated } from "../utils/auth";
 
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    // Nếu không có thẻ, mời về trang Login
-    return <Navigate to="/login" replace />;
+  if (!isAuthenticated()) {
+    return <Navigate to={ROUTES.login} replace />;
   }
 
   return children;

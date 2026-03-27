@@ -3,17 +3,18 @@ package com.dtl.springboot_auth_system.service.impl;
 import com.dtl.springboot_auth_system.dto.LoginRequest;
 import com.dtl.springboot_auth_system.dto.RegisterRequest;
 import com.dtl.springboot_auth_system.exception.InvalidCredentialsException;
+import com.dtl.springboot_auth_system.exception.ResourceNotFoundException;
 import com.dtl.springboot_auth_system.exception.UserAlreadyExistsException;
 import com.dtl.springboot_auth_system.model.Role;
 import com.dtl.springboot_auth_system.model.User;
 import com.dtl.springboot_auth_system.repository.RoleRepository;
 import com.dtl.springboot_auth_system.repository.UserRepository;
 import com.dtl.springboot_auth_system.security.JwtTokenProvider;
+import com.dtl.springboot_auth_system.security.RoleConstants;
 import com.dtl.springboot_auth_system.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -27,17 +28,17 @@ public class AuthServiceImpl implements AuthService {
     private final JwtTokenProvider tokenProvider;
 
     @Override
-    @Transactional
     public void register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Username đã tồn tại!");
-        }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Email đã tồn tại!");
+            throw new UserAlreadyExistsException("Username da ton tai.");
         }
 
-        Role roleUser = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new RuntimeException("Role ROLE_USER không tìm thấy trong DB"));
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("Email da ton tai.");
+        }
+
+        Role roleUser = roleRepository.findByName(RoleConstants.USER)
+                .orElseThrow(() -> new ResourceNotFoundException("Default user role was not found."));
 
         User user = new User();
         user.setUsername(request.getUsername());
@@ -50,12 +51,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new InvalidCredentialsException(
-                        "Tài khoản hoặc mật khẩu không chính xác"));
+        User user = userRepository.findByUsernameOrEmail(request.getUsername())
+                .orElseThrow(() -> new InvalidCredentialsException("Tai khoan hoac mat khau khong chinh xac."));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Tài khoản hoặc mật khẩu không chính xác");
+            throw new InvalidCredentialsException("Tai khoan hoac mat khau khong chinh xac.");
         }
 
         return tokenProvider.generateToken(user.getUsername());

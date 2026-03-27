@@ -9,5 +9,6 @@ public class ProductDTO {
     private Double price;
     private String description;
     private String imageUrl;
-    private String categoryName; // Chỉ gửi tên danh mục về cho nhẹ
+    private Long categoryId;
+    private String categoryName;
 }

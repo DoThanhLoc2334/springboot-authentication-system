@@ -1,128 +1,113 @@
-import React, { useState } from "react";
-import { Form, Input, Button, Card, Typography, message } from "antd";
-import { UserOutlined, LockOutlined, MailOutlined } from "@ant-design/icons";
-import { useNavigate, Link } from "react-router-dom";
+import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
+import { Button, Form, Input, Typography, message } from "antd";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import api from "../api/api";
+import AuthPageShell from "../components/AuthPageShell";
+import { ROUTES } from "../constants/routes";
+import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const Register = () => {
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const onFinish = async (values) => {
-    setLoading(true);
-    try {
-      // Chỉ gửi username, email, password về backend
-      const { confirmPassword, ...registerData } = values;
-      await api.post("/auth/register", registerData);
+    setSubmitting(true);
 
-      message.success("Đăng ký thành công! Hãy đăng nhập nhé.");
-      navigate("/login");
+    try {
+      const { confirmPassword, ...payload } = values;
+      await api.post("/auth/register", payload);
+      message.success("Dang ky thanh cong. Hay dang nhap.");
+      navigate(ROUTES.login, { replace: true });
     } catch (error) {
-      // Hiển thị lỗi từ Backend (ví dụ: Trùng username/email)
-      const errorMsg = error.response?.data || "Đăng ký thất bại!";
-      message.error(errorMsg);
+      message.error(
+        getApiErrorMessage(error, "Dang ky that bai. Vui long thu lai."),
+      );
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        minHeight: "100vh",
-        background: "#f0f2f5",
-      }}
+    <AuthPageShell
+      title="Dang ky"
+      subtitle="Tao tai khoan de truy cap khu vuc quan tri san pham."
     >
-      <Card style={{ width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <Title level={2}>Đăng ký Tài khoản</Title>
-          <Text type="secondary">Welcome to Auth System</Text>
+      <Form name="register_form" layout="vertical" onFinish={onFinish}>
+        <Form.Item
+          name="username"
+          rules={[{ required: true, message: "Vui long nhap username." }]}
+        >
+          <Input prefix={<UserOutlined />} placeholder="Username" size="large" />
+        </Form.Item>
+
+        <Form.Item
+          name="email"
+          rules={[
+            { required: true, message: "Vui long nhap email." },
+            { type: "email", message: "Email khong dung dinh dang." },
+          ]}
+        >
+          <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
+        </Form.Item>
+
+        <Form.Item
+          name="password"
+          rules={[
+            { required: true, message: "Vui long nhap mat khau." },
+            { min: 6, message: "Mat khau phai co it nhat 6 ky tu." },
+          ]}
+        >
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Mat khau"
+            size="large"
+          />
+        </Form.Item>
+
+        <Form.Item
+          name="confirmPassword"
+          dependencies={["password"]}
+          rules={[
+            { required: true, message: "Vui long nhap lai mat khau." },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                if (!value || getFieldValue("password") === value) {
+                  return Promise.resolve();
+                }
+
+                return Promise.reject(new Error("Mat khau nhap lai khong khop."));
+              },
+            }),
+          ]}
+        >
+          <Input.Password
+            prefix={<LockOutlined />}
+            placeholder="Nhap lai mat khau"
+            size="large"
+          />
+        </Form.Item>
+
+        <Form.Item style={{ marginBottom: 12 }}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            block
+            loading={submitting}
+          >
+            Tao tai khoan
+          </Button>
+        </Form.Item>
+
+        <div className="auth-footer">
+          <Text type="secondary">Da co tai khoan?</Text>
+          <Link to={ROUTES.login}>Dang nhap</Link>
         </div>
-
-        <Form name="register" onFinish={onFinish} layout="vertical">
-          <Form.Item
-            name="username"
-            rules={[{ required: true, message: "Vui lòng nhập Username!" }]}
-          >
-            <Input
-              prefix={<UserOutlined />}
-              placeholder="Username"
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="email"
-            rules={[
-              { required: true, message: "Vui lòng nhập Email!" },
-              { type: "email", message: "Email không đúng định dạng!" },
-            ]}
-          >
-            <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            rules={[
-              { required: true, message: "Vui lòng nhập Mật khẩu!" },
-              { min: 6, message: "Mật khẩu phải từ 6 ký tự trở lên!" },
-            ]}
-          >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="Mật khẩu"
-              size="large"
-            />
-          </Form.Item>
-
-          {/* Ô xác nhận mật khẩu - Logic đặc biệt của Ant Design */}
-          <Form.Item
-            name="confirmPassword"
-            dependencies={["password"]}
-            rules={[
-              { required: true, message: "Vui lòng xác nhận lại mật khẩu!" },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue("password") === value) {
-                    return Promise.resolve();
-                  }
-                  return Promise.reject(
-                    new Error("Mật khẩu nhập lại không khớp!"),
-                  );
-                },
-              }),
-            ]}
-          >
-            <Input.Password
-              prefix={<LockOutlined />}
-              placeholder="Xác nhận mật khẩu"
-              size="large"
-            />
-          </Form.Item>
-
-          <Form.Item>
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              size="large"
-              loading={loading}
-            >
-              Đăng ký ngay
-            </Button>
-          </Form.Item>
-
-          <div style={{ textAlign: "center" }}>
-            Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
-          </div>
-        </Form>
-      </Card>
-    </div>
+      </Form>
+    </AuthPageShell>
   );
 };
 

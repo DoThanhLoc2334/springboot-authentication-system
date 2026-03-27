@@ -13,23 +13,30 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. Xử lý lỗi Validation (đã làm ở Phase 1)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
 
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Validation Failed", errors);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Validation failed", errors);
     }
 
-    // 2. THÊM MỚI: Xử lý lỗi trùng User/Email
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), null);
     }
 
-    // Hàm dùng chung để tạo ErrorResponse cho gọn code
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException ex) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), null);
+    }
+
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message,
             Map<String, String> errors) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -38,11 +45,5 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 errors);
         return new ResponseEntity<>(errorResponse, status);
-    }
-
-    @ExceptionHandler(InvalidCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidCredentialsException(InvalidCredentialsException ex) {
-        // Trả về mã 401 thay vì 400 hoặc 500
-        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), null);
     }
 }

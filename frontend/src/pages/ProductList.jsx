@@ -1,227 +1,205 @@
-import React, { useEffect, useState } from "react";
-import {
-  Table,
-  Image,
-  Tag,
-  message,
-  Typography,
-  Button,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Popconfirm,
-} from "antd";
 import { PlusOutlined } from "@ant-design/icons";
+import {
+  Button,
+  Image,
+  Popconfirm,
+  Space,
+  Table,
+  Tag,
+  Typography,
+  message,
+} from "antd";
+import { useEffect, useState } from "react";
 import api from "../api/api";
+import ProductFormModal from "../components/ProductFormModal";
+import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
-const { Title } = Typography;
-const { Option } = Select;
+const { Title, Paragraph } = Typography;
+const currencyFormatter = new Intl.NumberFormat("vi-VN");
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form] = Form.useForm();
+  const [saving, setSaving] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
-  const fetchData = async () => {
+  const loadData = async () => {
     setLoading(true);
+
     try {
-      const [prodRes, catRes] = await Promise.all([
+      const [productResponse, categoryResponse] = await Promise.all([
         api.get("/products"),
         api.get("/categories"),
       ]);
-      setProducts(prodRes.data);
-      setCategories(catRes.data);
+
+      setProducts(productResponse.data);
+      setCategories(categoryResponse.data);
     } catch (error) {
-      message.error("Lỗi khi tải dữ liệu!");
+      message.error(
+        getApiErrorMessage(error, "Khong the tai danh sach san pham."),
+      );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    void loadData();
   }, []);
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditingProduct(null);
+  };
+
+  const handleCreateClick = () => {
+    setEditingProduct(null);
+    setModalOpen(true);
+  };
+
+  const handleEditClick = (product) => {
+    setEditingProduct(product);
+    setModalOpen(true);
+  };
+
+  const handleSave = async (values) => {
+    setSaving(true);
+
+    try {
+      if (editingProduct) {
+        await api.put(`/products/${editingProduct.id}`, values);
+        message.success("Cap nhat san pham thanh cong.");
+      } else {
+        await api.post("/products", values);
+        message.success("Them san pham thanh cong.");
+      }
+
+      closeModal();
+      await loadData();
+    } catch (error) {
+      message.error(
+        getApiErrorMessage(error, "Khong the luu san pham. Vui long thu lai."),
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDelete = async (id) => {
     try {
       await api.delete(`/products/${id}`);
-      message.success("Đã xóa sản phẩm thành công!");
-      fetchData();
+      message.success("Xoa san pham thanh cong.");
+      await loadData();
     } catch (error) {
-      message.error("Lỗi khi xóa sản phẩm!");
-    }
-  };
-
-  const showEditModal = (product) => {
-    setEditingProduct(product);
-    const category = categories.find((c) => c.name === product.categoryName);
-
-    form.setFieldsValue({
-      ...product,
-      categoryId: category?.id,
-    });
-    setIsModalOpen(true);
-  };
-
-  // Hàm này là "trái tim" của CRUD: xử lý cả Thêm và Sửa
-  const handleSave = async (values) => {
-    try {
-      if (editingProduct) {
-        await api.put(`/products/${editingProduct.id}`, values);
-        message.success("Cập nhật sản phẩm thành công!");
-      } else {
-        await api.post("/products", values);
-        message.success("Thêm sản phẩm thành công!");
-      }
-      setIsModalOpen(false);
-      setEditingProduct(null);
-      form.resetFields();
-      fetchData();
-    } catch (error) {
-      message.error("Đã có lỗi xảy ra!");
+      message.error(
+        getApiErrorMessage(error, "Khong the xoa san pham nay."),
+      );
     }
   };
 
   const columns = [
     {
-      title: "Hình ảnh",
+      title: "Hinh anh",
       dataIndex: "imageUrl",
       key: "imageUrl",
-      render: (text) => (
+      width: 100,
+      render: (imageUrl) => (
         <Image
-          src={text}
-          width={50}
-          fallback="https://via.placeholder.com/50"
+          src={imageUrl}
+          width={56}
+          height={56}
+          style={{ objectFit: "cover", borderRadius: 12 }}
+          fallback="https://via.placeholder.com/56?text=N/A"
         />
       ),
     },
     {
-      title: "Tên sản phẩm",
+      title: "San pham",
       dataIndex: "name",
       key: "name",
-      render: (text) => <b>{text}</b>,
+      render: (_, record) => (
+        <div>
+          <strong>{record.name}</strong>
+          <Paragraph type="secondary" ellipsis={{ rows: 2 }} style={{ marginBottom: 0 }}>
+            {record.description || "Chua co mo ta"}
+          </Paragraph>
+        </div>
+      ),
     },
     {
-      title: "Danh mục",
+      title: "Danh muc",
       dataIndex: "categoryName",
       key: "categoryName",
-      render: (cat) => <Tag color="blue">{cat}</Tag>,
+      width: 160,
+      render: (categoryName) => <Tag color="blue">{categoryName}</Tag>,
     },
     {
-      title: "Giá tiền",
+      title: "Gia tien",
       dataIndex: "price",
       key: "price",
-      render: (p) => `${p?.toLocaleString()} VNĐ`,
+      width: 180,
+      render: (price) => `${currencyFormatter.format(price ?? 0)} VND`,
     },
     {
-      title: "Hành động",
-      key: "action",
+      title: "Hanh dong",
+      key: "actions",
+      width: 160,
       render: (_, record) => (
-        <div style={{ display: "flex", gap: "10px" }}>
-          <Button type="link" onClick={() => showEditModal(record)}>
-            Sửa
+        <Space size="middle">
+          <Button type="link" onClick={() => handleEditClick(record)}>
+            Sua
           </Button>
           <Popconfirm
-            title="Xóa sản phẩm"
+            title="Xoa san pham"
+            description="Ban co chac chan muon xoa san pham nay?"
+            okText="Xoa"
+            cancelText="Huy"
             onConfirm={() => handleDelete(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
           >
-            <Button type="link" danger>
-              Xóa
+            <Button danger type="link">
+              Xoa
             </Button>
           </Popconfirm>
-        </div>
+        </Space>
       ),
     },
   ];
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          marginBottom: 20,
-        }}
-      >
-        <Title level={3}>Quản lý Sản phẩm</Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditingProduct(null); // Đảm bảo reset trạng thái edit khi thêm mới
-            form.resetFields();
-            setIsModalOpen(true);
-          }}
-        >
-          Thêm sản phẩm
+      <div className="page-section-header">
+        <div>
+          <Title level={3} style={{ marginBottom: 4 }}>
+            Quan ly san pham
+          </Title>
+          <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+            Theo doi danh sach san pham va cap nhat thong tin tu mot noi duy nhat.
+          </Paragraph>
+        </div>
+
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreateClick}>
+          Them san pham
         </Button>
       </div>
 
       <Table
-        columns={columns}
-        dataSource={products}
         rowKey="id"
         loading={loading}
+        dataSource={products}
+        columns={columns}
+        pagination={{ pageSize: 6, showSizeChanger: false }}
       />
 
-      <Modal
-        title={editingProduct ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}
-        open={isModalOpen}
-        onCancel={() => {
-          setIsModalOpen(false);
-          setEditingProduct(null);
-          form.resetFields();
-        }}
-        onOk={() => form.submit()}
-        okText="Lưu"
-        cancelText="Hủy"
-      >
-        {/* QUAN TRỌNG: Đổi onFinish thành handleSave */}
-        <Form form={form} layout="vertical" onFinish={handleSave}>
-          <Form.Item
-            name="name"
-            label="Tên sản phẩm"
-            rules={[{ required: true }]}
-          >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            name="categoryId"
-            label="Danh mục"
-            rules={[{ required: true }]}
-          >
-            <Select placeholder="Chọn danh mục">
-              {Array.isArray(categories) &&
-                categories.map((cat) => (
-                  <Option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </Option>
-                ))}
-            </Select>
-          </Form.Item>
-          <Form.Item name="price" label="Giá tiền" rules={[{ required: true }]}>
-            <InputNumber
-              style={{ width: "100%" }}
-              formatter={(value) =>
-                `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
-              }
-            />
-          </Form.Item>
-          <Form.Item name="imageUrl" label="Link hình ảnh">
-            <Input placeholder="https://..." />
-          </Form.Item>
-          <Form.Item name="description" label="Mô tả">
-            <Input.TextArea rows={3} />
-          </Form.Item>
-        </Form>
-      </Modal>
+      <ProductFormModal
+        open={modalOpen}
+        categories={categories}
+        editingProduct={editingProduct}
+        loading={saving}
+        onCancel={closeModal}
+        onSubmit={handleSave}
+      />
     </div>
   );
 };
