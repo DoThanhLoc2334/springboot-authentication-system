@@ -36,19 +36,23 @@ public class DataSeeder {
     @PostConstruct
     public void init() {
         // 1. Seed Role và User Admin
-        if (roleRepository.findByName("USER").isEmpty()) {
-            Role roleUser = new Role("USER");
-            roleRepository.save(roleUser);
+        // Kiểm tra xem user admin đã tồn tại chưa thay vì kiểm tra role
+        if (userRepository.findByUsername("admin").isEmpty()) {
 
-            User user = new User();
-            user.setUsername("admin");
-            user.setEmail("admin@gmail.com");
-            // Lưu ý: Nên mã hóa mật khẩu để có thể đăng nhập được qua Security
-            user.setPassword(passwordEncoder.encode("123")); 
-            user.setRoles(Set.of(roleUser));
-            userRepository.save(user);
+            // Tìm role ROLE_ADMIN đã được tạo từ file data.sql
+            // Nếu không tìm thấy (đề phòng) thì mới tạo mới
+            Role adminRole = roleRepository.findByName("ROLE_ADMIN")
+                    .orElseGet(() -> roleRepository.save(new Role("ROLE_ADMIN")));
 
-            System.out.println("Seeded User data!");
+            // Tạo user admin
+            User admin = new User();
+            admin.setUsername("admin");
+            admin.setEmail("admin@gmail.com");
+            admin.setPassword(passwordEncoder.encode("123"));
+            admin.setRoles(Set.of(adminRole)); // Gán quyền ADMIN cho user admin
+
+            userRepository.save(admin);
+            System.out.println("Seeded Admin user with ROLE_ADMIN!");
         }
 
         // 2. Seed Category và Product
