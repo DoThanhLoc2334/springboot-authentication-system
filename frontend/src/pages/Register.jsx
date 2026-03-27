@@ -19,11 +19,11 @@ const Register = () => {
     try {
       const { confirmPassword, ...payload } = values;
       await api.post("/auth/register", payload);
-      message.success("Dang ky thanh cong. Hay dang nhap.");
+      message.success("Registration successful. Please log in.");
       navigate(ROUTES.login, { replace: true });
     } catch (error) {
       message.error(
-        getApiErrorMessage(error, "Dang ky that bai. Vui long thu lai."),
+        getApiErrorMessage(error, "Registration failed. Please try again."),
       );
     } finally {
       setSubmitting(false);
@@ -32,13 +32,13 @@ const Register = () => {
 
   return (
     <AuthPageShell
-      title="Dang ky"
-      subtitle="Tao tai khoan de truy cap khu vuc quan tri san pham."
+      title="Sign up"
+      subtitle="Create an account to access the system."
     >
       <Form name="register_form" layout="vertical" onFinish={onFinish}>
         <Form.Item
           name="username"
-          rules={[{ required: true, message: "Vui long nhap username." }]}
+          rules={[{ required: true, message: "Please enter your username." }]}
         >
           <Input prefix={<UserOutlined />} placeholder="Username" size="large" />
         </Form.Item>
@@ -46,8 +46,8 @@ const Register = () => {
         <Form.Item
           name="email"
           rules={[
-            { required: true, message: "Vui long nhap email." },
-            { type: "email", message: "Email khong dung dinh dang." },
+            { required: true, message: "Please enter your email." },
+            { type: "email", message: "The email is not in the correct format." },
           ]}
         >
           <Input prefix={<MailOutlined />} placeholder="Email" size="large" />
@@ -56,13 +56,13 @@ const Register = () => {
         <Form.Item
           name="password"
           rules={[
-            { required: true, message: "Vui long nhap mat khau." },
-            { min: 6, message: "Mat khau phai co it nhat 6 ky tu." },
+            { required: true, message: "Please enter your password." },
+            { min: 6, message: "Password must be at least 6 characters." },
           ]}
         >
           <Input.Password
             prefix={<LockOutlined />}
-            placeholder="Mat khau"
+            placeholder="Password"
             size="large"
           />
         </Form.Item>
@@ -71,21 +71,21 @@ const Register = () => {
           name="confirmPassword"
           dependencies={["password"]}
           rules={[
-            { required: true, message: "Vui long nhap lai mat khau." },
+            { required: true, message: "Please confirm your password." },
             ({ getFieldValue }) => ({
               validator(_, value) {
                 if (!value || getFieldValue("password") === value) {
                   return Promise.resolve();
                 }
 
-                return Promise.reject(new Error("Mat khau nhap lai khong khop."));
+                return Promise.reject(new Error("The two passwords do not match."));
               },
             }),
           ]}
         >
           <Input.Password
             prefix={<LockOutlined />}
-            placeholder="Nhap lai mat khau"
+            placeholder="Confirm password"
             size="large"
           />
         </Form.Item>
@@ -98,13 +98,13 @@ const Register = () => {
             block
             loading={submitting}
           >
-            Tao tai khoan
+            Create Account
           </Button>
         </Form.Item>
 
         <div className="auth-footer">
-          <Text type="secondary">Da co tai khoan?</Text>
-          <Link to={ROUTES.login}>Dang nhap</Link>
+          <Text type="secondary">Already have an account?</Text>
+          <Link to={ROUTES.login}>Log in</Link>
         </div>
       </Form>
     </AuthPageShell>

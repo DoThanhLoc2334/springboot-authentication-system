@@ -20,13 +20,13 @@ const Login = () => {
     try {
       const response = await api.post("/auth/login", values);
       setToken(response.data.accessToken);
-      message.success("Dang nhap thanh cong.");
+      message.success("Login successful.");
       navigate(ROUTES.dashboard, { replace: true });
     } catch (error) {
       message.error(
         getApiErrorMessage(
           error,
-          "Tai khoan hoac mat khau khong chinh xac.",
+          "Incorrect username or password.",
         ),
       );
     } finally {
@@ -36,28 +36,28 @@ const Login = () => {
 
   return (
     <AuthPageShell
-      title="Dang nhap"
-      subtitle="Quan ly cua hang voi giao dien admin don gian va nhanh gon."
+      title="Login"
+      subtitle="Welcome."
     >
       <Form name="login_form" layout="vertical" onFinish={onFinish}>
         <Form.Item
           name="username"
-          rules={[{ required: true, message: "Vui long nhap username." }]}
+          rules={[{ required: true, message: "Please enter your username." }]}
         >
           <Input
             prefix={<UserOutlined />}
-            placeholder="Username hoac email"
+            placeholder="Username or email"
             size="large"
           />
         </Form.Item>
 
         <Form.Item
           name="password"
-          rules={[{ required: true, message: "Vui long nhap mat khau." }]}
+          rules={[{ required: true, message: "Please enter your password." }]}
         >
           <Input.Password
             prefix={<LockOutlined />}
-            placeholder="Mat khau"
+            placeholder="Password"
             size="large"
           />
         </Form.Item>
@@ -70,18 +70,18 @@ const Login = () => {
             block
             loading={submitting}
           >
-            Dang nhap
+            Log in
           </Button>
         </Form.Item>
 
         <div className="auth-footer">
-          <Text type="secondary">Chua co tai khoan?</Text>
+          <Text type="secondary">Don't have an account?</Text>
           <Button
             type="link"
             onClick={() => navigate(ROUTES.register)}
             style={{ padding: 0 }}
           >
-            Dang ky ngay
+            Sign up now
           </Button>
         </div>
       </Form>
