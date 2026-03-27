@@ -1,20 +1,25 @@
 package com.dtl.springboot_auth_system.service.impl;
 
+import com.dtl.springboot_auth_system.dto.JwtResponse;
 import com.dtl.springboot_auth_system.dto.LoginRequest;
 import com.dtl.springboot_auth_system.dto.RegisterRequest;
-import com.dtl.springboot_auth_system.exception.InvalidCredentialsException;
-import com.dtl.springboot_auth_system.exception.ResourceNotFoundException;
-import com.dtl.springboot_auth_system.exception.UserAlreadyExistsException;
 import com.dtl.springboot_auth_system.model.Role;
 import com.dtl.springboot_auth_system.model.User;
+import com.dtl.springboot_auth_system.exception.ResourceNotFoundException;
+import com.dtl.springboot_auth_system.exception.UserAlreadyExistsException;
 import com.dtl.springboot_auth_system.repository.RoleRepository;
 import com.dtl.springboot_auth_system.repository.UserRepository;
 import com.dtl.springboot_auth_system.security.JwtTokenProvider;
-import com.dtl.springboot_auth_system.security.RoleConstants;
 import com.dtl.springboot_auth_system.service.AuthService;
+import com.dtl.springboot_auth_system.util.RoleConstants;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 
@@ -22,19 +27,21 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
 
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider tokenProvider;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider tokenProvider;
 
     @Override
+    @Transactional
     public void register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new UserAlreadyExistsException("Username da ton tai.");
+            throw new UserAlreadyExistsException("Username already exists.");
         }
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new UserAlreadyExistsException("Email da ton tai.");
+            throw new UserAlreadyExistsException("Email already exists.");
         }
 
         Role roleUser = roleRepository.findByName(RoleConstants.USER)
@@ -50,14 +57,21 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String login(LoginRequest request) {
-        User user = userRepository.findByUsernameOrEmail(request.getUsername())
-                .orElseThrow(() -> new InvalidCredentialsException("Tai khoan hoac mat khau khong chinh xac."));
+    public JwtResponse login(LoginRequest request) {
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new InvalidCredentialsException("Tai khoan hoac mat khau khong chinh xac.");
-        }
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return tokenProvider.generateToken(user.getUsername());
+        String username = authentication.getName();
+
+        String accessToken = tokenProvider.generateAccessToken(username);
+        String refreshToken = tokenProvider.generateRefreshToken(username);
+
+        return new JwtResponse(accessToken, refreshToken);
     }
 }

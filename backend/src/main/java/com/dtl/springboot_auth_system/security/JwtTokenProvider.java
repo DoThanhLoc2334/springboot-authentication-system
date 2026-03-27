@@ -14,23 +14,42 @@ import java.util.Date;
 public class JwtTokenProvider {
 
     private final SecretKey jwtSecret;
-    private final long jwtExpirationDate;
+    private final long accessTokenExpirationMs;
+    private final long refreshTokenExpirationMs;
 
     public JwtTokenProvider(
             @Value("${app.jwt.secret}") String jwtSecretString,
-            @Value("${app.jwt.expiration-ms:86400000}") long jwtExpirationDate) {
+            @Value("${app.jwt.access-token-expiration-ms:3600000}") long accessTokenExpirationMs,
+            @Value("${app.jwt.refresh-token-expiration-ms:604800000}") long refreshTokenExpirationMs) {
+
         this.jwtSecret = Keys.hmacShaKeyFor(jwtSecretString.getBytes(StandardCharsets.UTF_8));
-        this.jwtExpirationDate = jwtExpirationDate;
+        this.accessTokenExpirationMs = accessTokenExpirationMs;
+        this.refreshTokenExpirationMs = refreshTokenExpirationMs;
     }
 
-    public String generateToken(String username) {
+
+    public String generateAccessToken(String username) {
         Date currentDate = new Date();
-        Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
+        Date expireDate = new Date(currentDate.getTime() + accessTokenExpirationMs);
 
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(currentDate)
                 .expiration(expireDate)
+                .claim("type", "access")
+                .signWith(jwtSecret)
+                .compact();
+    }
+
+    public String generateRefreshToken(String username) {
+        Date currentDate = new Date();
+        Date expireDate = new Date(currentDate.getTime() + refreshTokenExpirationMs);
+
+        return Jwts.builder()
+                .subject(username)
+                .issuedAt(currentDate)
+                .expiration(expireDate)
+                .claim("type", "refresh")
                 .signWith(jwtSecret)
                 .compact();
     }
@@ -54,5 +73,5 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }
-    }
+    } 
 }
