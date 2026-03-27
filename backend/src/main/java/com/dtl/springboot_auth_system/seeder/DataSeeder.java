@@ -1,92 +1,100 @@
 package com.dtl.springboot_auth_system.seeder;
 
-import com.dtl.springboot_auth_system.model.Role;
-import com.dtl.springboot_auth_system.model.User;
 import com.dtl.springboot_auth_system.model.Category;
 import com.dtl.springboot_auth_system.model.Product;
-import com.dtl.springboot_auth_system.repository.RoleRepository;
-import com.dtl.springboot_auth_system.repository.UserRepository;
+import com.dtl.springboot_auth_system.model.Role;
+import com.dtl.springboot_auth_system.model.User;
 import com.dtl.springboot_auth_system.repository.CategoryRepository;
 import com.dtl.springboot_auth_system.repository.ProductRepository;
+import com.dtl.springboot_auth_system.repository.RoleRepository;
+import com.dtl.springboot_auth_system.repository.UserRepository;
+import com.dtl.springboot_auth_system.security.RoleConstants;
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
 
 @Component
+@RequiredArgsConstructor
 public class DataSeeder {
 
-    @Autowired
-    private RoleRepository roleRepository;
+    private final RoleRepository roleRepository;
+    private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    private UserRepository userRepository;
+    @Value("${app.seed.admin.username:admin}")
+    private String adminUsername;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    @Value("${app.seed.admin.email:admin@gmail.com}")
+    private String adminEmail;
 
-    @Autowired
-    private ProductRepository productRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder; // Để mã hóa mật khẩu admin cho đúng chuẩn
+    @Value("${app.seed.admin.password:123}")
+    private String adminPassword;
 
     @PostConstruct
     public void init() {
-        // 1. Seed Role và User Admin
-        // Kiểm tra xem user admin đã tồn tại chưa thay vì kiểm tra role
-        if (userRepository.findByUsername("admin").isEmpty()) {
+        seedAdminUser();
+        seedCatalog();
+    }
 
-            // Tìm role ROLE_ADMIN đã được tạo từ file data.sql
-            // Nếu không tìm thấy (đề phòng) thì mới tạo mới
-            Role adminRole = roleRepository.findByName("ROLE_ADMIN")
-                    .orElseGet(() -> roleRepository.save(new Role("ROLE_ADMIN")));
-
-            // Tạo user admin
-            User admin = new User();
-            admin.setUsername("admin");
-            admin.setEmail("admin@gmail.com");
-            admin.setPassword(passwordEncoder.encode("123"));
-            admin.setRoles(Set.of(adminRole)); // Gán quyền ADMIN cho user admin
-
-            userRepository.save(admin);
-            System.out.println("Seeded Admin user with ROLE_ADMIN!");
+    private void seedAdminUser() {
+        if (userRepository.findByUsername(adminUsername).isPresent()) {
+            return;
         }
 
-        // 2. Seed Category và Product
-        if (categoryRepository.count() == 0) {
-            // Tạo Danh mục
-            Category laptop = new Category();
-            laptop.setName("Laptop");
-            laptop.setDescription("Máy tính xách tay văn phòng và gaming");
-            categoryRepository.save(laptop);
+        Role adminRole = roleRepository.findByName(RoleConstants.ADMIN)
+                .orElseGet(() -> roleRepository.save(new Role(RoleConstants.ADMIN)));
 
-            Category smartphone = new Category();
-            smartphone.setName("Smartphone");
-            smartphone.setDescription("Điện thoại thông minh đời mới");
-            categoryRepository.save(smartphone);
+        User admin = new User();
+        admin.setUsername(adminUsername);
+        admin.setEmail(adminEmail);
+        admin.setPassword(passwordEncoder.encode(adminPassword));
+        admin.setRoles(Set.of(adminRole));
 
-            // Tạo Sản phẩm 1
-            Product p1 = new Product();
-            p1.setName("MacBook Pro M3");
-            p1.setPrice(45000000.0);
-            p1.setDescription("Chip M3 mạnh mẽ, màn hình Liquid Retina XDR cực đẹp.");
-            p1.setImageUrl("https://images.unsplash.com/photo-1517336714460-4c50d11de3f7?q=80&w=600");
-            p1.setCategory(laptop);
-            productRepository.save(p1);
+        userRepository.save(admin);
+    }
 
-            // Tạo Sản phẩm 2
-            Product p2 = new Product();
-            p2.setName("iPhone 15 Pro Max");
-            p2.setPrice(32000000.0);
-            p2.setDescription("Khung viền Titan, camera 5x zoom quang học.");
-            p2.setImageUrl("https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=600");
-            p2.setCategory(smartphone);
-            productRepository.save(p2);
-
-            System.out.println("Seeded Category & Product data!");
+    private void seedCatalog() {
+        if (categoryRepository.count() > 0) {
+            return;
         }
+
+        Category laptop = categoryRepository.save(buildCategory("Laptop", "Office and gaming laptops."));
+        Category smartphone = categoryRepository.save(buildCategory("Smartphone", "Modern smartphones."));
+
+        productRepository.save(buildProduct(
+                "MacBook Pro M3",
+                45000000.0,
+                "Powerful M3 chip with a Liquid Retina XDR display.",
+                "https://images.unsplash.com/photo-1517336714460-4c50d11de3f7?q=80&w=600",
+                laptop));
+        productRepository.save(buildProduct(
+                "iPhone 15 Pro Max",
+                32000000.0,
+                "Titanium frame and 5x optical zoom camera.",
+                "https://images.unsplash.com/photo-1696446701796-da61225697cc?q=80&w=600",
+                smartphone));
+    }
+
+    private Category buildCategory(String name, String description) {
+        Category category = new Category();
+        category.setName(name);
+        category.setDescription(description);
+        return category;
+    }
+
+    private Product buildProduct(String name, Double price, String description, String imageUrl, Category category) {
+        Product product = new Product();
+        product.setName(name);
+        product.setPrice(price);
+        product.setDescription(description);
+        product.setImageUrl(imageUrl);
+        product.setCategory(category);
+        return product;
     }
 }

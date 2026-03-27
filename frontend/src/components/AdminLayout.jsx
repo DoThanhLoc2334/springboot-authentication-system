@@ -1,14 +1,44 @@
-import React, { useState } from "react";
-import { Layout, Menu, theme, message } from "antd";
 import {
-  DashboardOutlined,
   AppstoreOutlined,
-  ShoppingCartOutlined,
+  DashboardOutlined,
   LogoutOutlined,
+  ShoppingCartOutlined,
 } from "@ant-design/icons";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Layout, Menu, Typography, message, theme } from "antd";
+import { useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { ROUTES } from "../constants/routes";
+import { clearToken } from "../utils/auth";
 
 const { Header, Sider, Content } = Layout;
+const { Text } = Typography;
+
+const navigationItems = [
+  {
+    key: ROUTES.dashboard,
+    icon: <DashboardOutlined />,
+    label: "Tong quan",
+  },
+  {
+    key: ROUTES.categories,
+    icon: <AppstoreOutlined />,
+    label: "Danh muc",
+  },
+  {
+    key: ROUTES.products,
+    icon: <ShoppingCartOutlined />,
+    label: "San pham",
+  },
+  {
+    type: "divider",
+  },
+  {
+    key: "logout",
+    icon: <LogoutOutlined />,
+    label: "Dang xuat",
+    danger: true,
+  },
+];
 
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -18,25 +48,16 @@ const AdminLayout = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    message.success("Đăng xuất thành công!");
-    navigate("/login");
-  };
+  const handleMenuClick = ({ key }) => {
+    if (key === "logout") {
+      clearToken();
+      message.success("Dang xuat thanh cong.");
+      navigate(ROUTES.login, { replace: true });
+      return;
+    }
 
-  // Định nghĩa Menu items - Đăng xuất nằm ở cuối cùng
-  const menuItems = [
-    { key: "dashboard", icon: <DashboardOutlined />, label: "Tổng quan" },
-    { key: "categories", icon: <AppstoreOutlined />, label: "Danh mục" },
-    { key: "products", icon: <ShoppingCartOutlined />, label: "Sản phẩm" },
-    { type: "divider" }, // Vạch kẻ ngăn cách
-    {
-      key: "logout",
-      icon: <LogoutOutlined />,
-      label: "Đăng xuất",
-      danger: true,
-    },
-  ];
+    navigate(key);
+  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -45,47 +66,29 @@ const AdminLayout = () => {
         collapsed={collapsed}
         onCollapse={(value) => setCollapsed(value)}
       >
-        <div
-          style={{
-            height: 32,
-            margin: 16,
-            background: "rgba(255, 255, 255, 0.2)",
-            borderRadius: 6,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            color: "white",
-            fontWeight: "bold",
-            overflow: "hidden",
-          }}
-        >
-          {collapsed ? "H" : "HUTECH ADMIN"}
+        <div className="admin-brand">
+          <Text strong style={{ color: "inherit" }}>
+            {collapsed ? "HS" : "HUTECH STORE"}
+          </Text>
         </div>
-
         <Menu
           theme="dark"
           mode="inline"
-          // Tự động sáng đúng ô dựa trên đường dẫn URL
-          selectedKeys={[location.pathname.split("/").pop()]}
-          items={menuItems}
-          onClick={({ key }) => {
-            if (key === "logout") {
-              handleLogout();
-            } else {
-              navigate(`/admin/${key}`);
-            }
-          }}
+          selectedKeys={[location.pathname]}
+          items={navigationItems}
+          onClick={handleMenuClick}
         />
-        {/* ĐÃ XÓA PHẦN DIV ABSOLUTE Ở ĐÂY */}
       </Sider>
 
       <Layout>
-        <Header style={{ padding: 0, background: colorBgContainer }} />
-        <Content style={{ margin: "16px" }}>
+        <Header
+          className="admin-header"
+          style={{ background: colorBgContainer }}
+        />
+        <Content style={{ margin: 16 }}>
           <div
+            className="page-panel"
             style={{
-              padding: 24,
-              minHeight: 360,
               background: colorBgContainer,
               borderRadius: borderRadiusLG,
             }}

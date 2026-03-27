@@ -26,8 +26,7 @@ public class Product {
 
     private String imageUrl;
 
-    // Nhiều sản phẩm thuộc về một danh mục
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 }

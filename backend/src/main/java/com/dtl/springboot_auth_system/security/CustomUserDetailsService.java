@@ -21,22 +21,21 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
-        // 1. Tìm User trong DB bằng Username hoặc Email
-        User user = userRepository.findByUsername(usernameOrEmail)
-                .or(() -> userRepository.findByEmail(usernameOrEmail))
+        User user = userRepository.findByUsernameOrEmail(usernameOrEmail)
                 .orElseThrow(() -> new UsernameNotFoundException(
-                        "Không tìm thấy người dùng với Username hoặc Email: " + usernameOrEmail));
+                        "User not found with username or email: " + usernameOrEmail));
 
-        // 2. Chuyển đổi Set<Role> của chúng ta thành Set<GrantedAuthority> mà Spring
-        // Security hiểu được
         Set<GrantedAuthority> authorities = user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toSet());
 
-        // 3. Trả về đối tượng User của Spring Security
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
+                user.isEnabled(),
+                true,
+                true,
+                true,
                 authorities);
     }
 }

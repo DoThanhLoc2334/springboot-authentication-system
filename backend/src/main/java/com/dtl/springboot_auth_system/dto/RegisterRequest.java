@@ -6,22 +6,20 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.util.Set;
 
-@Data // Thay thế cho toàn bộ Getter, Setter, toString...
-@NoArgsConstructor // Tạo constructor mặc định
-@AllArgsConstructor // Tạo constructor đầy đủ tham số
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegisterRequest {
 
-    @NotBlank(message = "Username không được để trống")
+    @NotBlank(message = "Username khong duoc de trong")
     private String username;
 
-    @NotBlank(message = "Email không được để trống")
-    @Email(message = "Email không đúng định dạng")
+    @NotBlank(message = "Email khong duoc de trong")
+    @Email(message = "Email khong dung dinh dang")
     private String email;
 
-    @NotBlank(message = "Mật khẩu không được để trống")
-    @Size(min = 6, message = "Mật khẩu phải có ít nhất 6 ký tự")
+    @NotBlank(message = "Mat khau khong duoc de trong")
+    @Size(min = 6, message = "Mat khau phai co it nhat 6 ky tu")
     private String password;
-    private Set<String> roles; // Thêm import java.util.Set;
 }

@@ -1,6 +1,8 @@
 package com.dtl.springboot_auth_system.model;
 
 import jakarta.persistence.*;
+
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -73,8 +75,10 @@ public class User {
         this.roles = roles;
     }
 
-    public void addRole(Role role){
-        
+    public void addRole(Role role) {
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        roles.add(role);
     }
-
 }

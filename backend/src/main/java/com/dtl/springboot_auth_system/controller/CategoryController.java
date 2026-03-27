@@ -1,21 +1,21 @@
 package com.dtl.springboot_auth_system.controller;
 
-import com.dtl.springboot_auth_system.repository.CategoryRepository;
-import com.dtl.springboot_auth_system.model.Category;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.dtl.springboot_auth_system.dto.CategoryDTO;
+import com.dtl.springboot_auth_system.service.CategoryService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
+@RequiredArgsConstructor
 public class CategoryController {
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
 
     @GetMapping
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDTO> getAllCategories() {
+        return categoryService.getAllCategories();
     }
 }

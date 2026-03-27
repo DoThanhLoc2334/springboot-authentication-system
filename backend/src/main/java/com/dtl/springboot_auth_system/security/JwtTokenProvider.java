@@ -1,7 +1,9 @@
 package com.dtl.springboot_auth_system.security;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -11,35 +13,37 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    // Tạo một Key bí mật (Trong thực tế nên lưu trong application.properties)
-    private final String jwtSecretString = "phai_co_it_nhat_32_ky_tu_cho_security_2026";
-    private final SecretKey jwtSecret = Keys.hmacShaKeyFor(jwtSecretString.getBytes(StandardCharsets.UTF_8));
-    private final long jwtExpirationDate = 86400000; // 24 giờ
+    private final SecretKey jwtSecret;
+    private final long jwtExpirationDate;
 
-    // 1. Tạo Token từ Username
+    public JwtTokenProvider(
+            @Value("${app.jwt.secret}") String jwtSecretString,
+            @Value("${app.jwt.expiration-ms:86400000}") long jwtExpirationDate) {
+        this.jwtSecret = Keys.hmacShaKeyFor(jwtSecretString.getBytes(StandardCharsets.UTF_8));
+        this.jwtExpirationDate = jwtExpirationDate;
+    }
+
     public String generateToken(String username) {
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + jwtExpirationDate);
 
         return Jwts.builder()
-                .subject(username) // Thay cho setSubject()
-                .issuedAt(currentDate) // Thay cho setIssuedAt()
-                .expiration(expireDate) // Thay cho setExpiration()
-                .signWith(jwtSecret) // JJWT tự nhận diện thuật toán
+                .subject(username)
+                .issuedAt(currentDate)
+                .expiration(expireDate)
+                .signWith(jwtSecret)
                 .compact();
     }
 
-    // 2. Lấy Username từ Token
-    public String getUsernameFromJWT(String token) {
+    public String getUsernameFromToken(String token) {
         return Jwts.parser()
-                .verifyWith(jwtSecret) // Thay cho setSigningKey()
+                .verifyWith(jwtSecret)
                 .build()
-                .parseSignedClaims(token) // Thay cho parseClaimsJws()
-                .getPayload() // Thay cho getBody()
+                .parseSignedClaims(token)
+                .getPayload()
                 .getSubject();
     }
 
-    // 3. Kiểm tra Token hợp lệ không
     public boolean validateToken(String token) {
         try {
             Jwts.parser()
@@ -47,8 +51,7 @@ public class JwtTokenProvider {
                     .build()
                     .parseSignedClaims(token);
             return true;
-        } catch (Exception ex) {
-            // Log lỗi cụ thể ở đây nếu cần (Expired, Malformed...)
+        } catch (JwtException | IllegalArgumentException ex) {
             return false;
         }
     }
