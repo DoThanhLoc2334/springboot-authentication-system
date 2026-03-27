@@ -41,7 +41,7 @@ const Register = () => {
       <Card style={{ width: 400, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <Title level={2}>Đăng ký Tài khoản</Title>
-          <Text type="secondary">Gia nhập cộng đồng HUTECH Admin</Text>
+          <Text type="secondary">Welcome to Auth System</Text>
         </div>
 
         <Form name="register" onFinish={onFinish} layout="vertical">

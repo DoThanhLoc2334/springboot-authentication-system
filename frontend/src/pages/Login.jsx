@@ -45,7 +45,7 @@ const Login = () => {
           <span
             style={{ color: "#1890ff", fontSize: "24px", fontWeight: "bold" }}
           >
-            HUTECH E-COMMERCE
+            Auth System
           </span>
         }
         style={{

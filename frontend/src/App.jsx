@@ -34,7 +34,6 @@ function App() {
             path="categories"
             element={<div>Trang Danh mục (Sẽ làm sau)</div>}
           />
-          // ✅ ĐÚNG: Phải gọi Component ProductList vào đây
           <Route path="products" element={<ProductList />} />
         </Route>
 

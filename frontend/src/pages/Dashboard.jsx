@@ -1,7 +1,7 @@
 const Dashboard = () => {
   return (
     <div>
-      <h3>Chào mừng Huy đến với trang Quản trị!</h3>
+      <h3>Chào mừng bạn đến với trang Quản trị!</h3>
       <p>Đây là nơi bạn sẽ quản lý toàn bộ cửa hàng của mình.</p>
       <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
         <div
