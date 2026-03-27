@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminLayout from "./components/AdminLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ProductList from "./pages/ProductList";
+import Register from "./pages/Register";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         {/* Public Route: Ai cũng vào được */}
         <Route path="/login" element={<Login />} />
+        <Route path="register" element={<Register />} />
 
         {/* Protected Admin Routes: Chỉ dành cho người có Token */}
         <Route
