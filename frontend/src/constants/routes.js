@@ -5,4 +5,5 @@ export const ROUTES = {
   dashboard: "/admin/dashboard",
   categories: "/admin/categories",
   products: "/admin/products",
+  users: "/admin/users",
 };

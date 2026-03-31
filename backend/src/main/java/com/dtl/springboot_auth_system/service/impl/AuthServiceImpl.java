@@ -60,16 +60,14 @@ public class AuthServiceImpl implements AuthService {
     public JwtResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+                        request.getUsernameOrEmail(),
+                        request.getPassword()));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String username = authentication.getName();
 
-        String accessToken = tokenProvider.generateAccessToken(username);
+        String accessToken = tokenProvider.generateAccessToken(username, authentication.getAuthorities());
         String refreshToken = tokenProvider.generateRefreshToken(username);
 
         return new JwtResponse(accessToken, refreshToken);

@@ -3,50 +3,61 @@ import {
   DashboardOutlined,
   LogoutOutlined,
   ShoppingCartOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Typography, message, theme } from "antd";
 import { useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "../constants/routes";
-import { clearToken } from "../utils/auth";
+import { clearToken, isAdmin } from "../utils/auth";
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
-
-const navigationItems = [
-  {
-    key: ROUTES.dashboard,
-    icon: <DashboardOutlined />,
-    label: "Tong quan",
-  },
-  {
-    key: ROUTES.categories,
-    icon: <AppstoreOutlined />,
-    label: "Danh muc",
-  },
-  {
-    key: ROUTES.products,
-    icon: <ShoppingCartOutlined />,
-    label: "San pham",
-  },
-  {
-    type: "divider",
-  },
-  {
-    key: "logout",
-    icon: <LogoutOutlined />,
-    label: "Dang xuat",
-    danger: true,
-  },
-];
 
 const AdminLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const admin = isAdmin();
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+
+  const navigationItems = [
+    {
+      key: ROUTES.dashboard,
+      icon: <DashboardOutlined />,
+      label: "Tong quan",
+    },
+    {
+      key: ROUTES.categories,
+      icon: <AppstoreOutlined />,
+      label: "Danh muc",
+    },
+    {
+      key: ROUTES.products,
+      icon: <ShoppingCartOutlined />,
+      label: "San pham",
+    },
+    ...(admin
+      ? [
+          {
+            key: ROUTES.users,
+            icon: <UserOutlined />,
+            label: "Nguoi dung",
+          },
+        ]
+      : []),
+    {
+      type: "divider",
+    },
+    {
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: "Dang xuat",
+      danger: true,
+    },
+  ];
 
   const handleMenuClick = ({ key }) => {
     if (key === "logout") {

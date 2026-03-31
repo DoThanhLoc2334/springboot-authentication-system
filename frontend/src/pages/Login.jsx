@@ -24,10 +24,7 @@ const Login = () => {
       navigate(ROUTES.dashboard, { replace: true });
     } catch (error) {
       message.error(
-        getApiErrorMessage(
-          error,
-          "Incorrect username or password.",
-        ),
+        getApiErrorMessage(error, "Incorrect username or password."),
       );
     } finally {
       setSubmitting(false);
@@ -35,14 +32,13 @@ const Login = () => {
   };
 
   return (
-    <AuthPageShell
-      title="Login"
-      subtitle="Welcome."
-    >
+    <AuthPageShell title="Login" subtitle="Welcome.">
       <Form name="login_form" layout="vertical" onFinish={onFinish}>
         <Form.Item
-          name="username"
-          rules={[{ required: true, message: "Please enter your username." }]}
+          name="usernameOrEmail"
+          rules={[
+            { required: true, message: "Please enter your username or email." },
+          ]}
         >
           <Input
             prefix={<UserOutlined />}
