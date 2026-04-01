@@ -1,6 +1,8 @@
 package com.dtl.springboot_auth_system.controller;
 
 import com.dtl.springboot_auth_system.dto.UserDTO;
+import com.dtl.springboot_auth_system.dto.request.AdminChangePasswordRequest;
+import com.dtl.springboot_auth_system.dto.request.ChangePasswordRequest;
 import com.dtl.springboot_auth_system.dto.request.UserRequest;
 import com.dtl.springboot_auth_system.service.UserService;
 import jakarta.validation.Valid;
@@ -15,8 +17,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -67,12 +67,15 @@ public class UserController {
     @PutMapping("/{id}/password")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> changePassword(@PathVariable Long id,
-            @RequestBody Map<String, String> passwordRequest) {
-        String newPassword = passwordRequest.get("newPassword");
-        if (newPassword == null || newPassword.trim().isEmpty()) {
-            return ResponseEntity.badRequest().build();
-        }
-        userService.changePassword(id, newPassword);
+            @Valid @RequestBody AdminChangePasswordRequest request) {
+        userService.changePassword(id, request.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/profile/password")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> changeCurrentUserPassword(@Valid @RequestBody ChangePasswordRequest request) {
+        userService.changeCurrentUserPassword(request.getCurrentPassword(), request.getNewPassword());
         return ResponseEntity.ok().build();
     }
 
