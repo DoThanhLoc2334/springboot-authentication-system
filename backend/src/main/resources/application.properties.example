@@ -14,7 +14,8 @@ app.jwt.access-token-expiration-ms=${JWT_ACCESS_TOKEN_EXPIRATION_MS:3600000}
 app.jwt.refresh-token-expiration-ms=${JWT_REFRESH_TOKEN_EXPIRATION_MS:604800000}
 app.cors.allowed-origins=http://localhost:5173
 
-# Seed Data
-app.seed.admin.username=admin
-app.seed.admin.email=admin@gmail.com
-app.seed.admin.password=123
+# Optional admin seed for local/dev only
+app.seed.admin.enabled=${SEED_ADMIN_ENABLED:false}
+app.seed.admin.username=${SEED_ADMIN_USERNAME:}
+app.seed.admin.email=${SEED_ADMIN_EMAIL:}
+app.seed.admin.password=${SEED_ADMIN_PASSWORD:}

@@ -7,27 +7,33 @@ import com.dtl.springboot_auth_system.repository.UserRepository;
 import com.dtl.springboot_auth_system.util.RoleConstants;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DataSeeder {
 
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${app.seed.admin.username:admin}")
+    @Value("${app.seed.admin.enabled:false}")
+    private boolean adminSeedEnabled;
+
+    @Value("${app.seed.admin.username:}")
     private String adminUsername;
 
-    @Value("${app.seed.admin.email:admin@gmail.com}")
+    @Value("${app.seed.admin.email:}")
     private String adminEmail;
 
-    @Value("${app.seed.admin.password:123}")
+    @Value("${app.seed.admin.password:}")
     private String adminPassword;
 
     @PostConstruct
@@ -45,6 +51,18 @@ public class DataSeeder {
     }
 
     private void seedAdminUser() {
+        if (!adminSeedEnabled) {
+            log.info("Admin seeding is disabled.");
+            return;
+        }
+
+        if (!StringUtils.hasText(adminUsername)
+                || !StringUtils.hasText(adminEmail)
+                || !StringUtils.hasText(adminPassword)) {
+            log.warn("Admin seeding is enabled, but username/email/password is missing. Skipping admin seed.");
+            return;
+        }
+
         if (userRepository.findByUsername(adminUsername).isPresent()
                 || userRepository.findByEmail(adminEmail).isPresent()) {
             return;
