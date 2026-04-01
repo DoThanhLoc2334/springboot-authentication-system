@@ -40,7 +40,7 @@ public class AuthController {
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> logout() {
-        authService.logout();
+        authService.logoutCurrentUser();
         return ResponseEntity.ok("Logout successful. Remove tokens on the client side.");
     }
 }

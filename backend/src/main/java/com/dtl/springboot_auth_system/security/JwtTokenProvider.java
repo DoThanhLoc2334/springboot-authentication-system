@@ -31,7 +31,8 @@ public class JwtTokenProvider {
         this.refreshTokenExpirationMs = refreshTokenExpirationMs;
     }
 
-    public String generateAccessToken(String username, Collection<? extends GrantedAuthority> authorities) {
+    public String generateAccessToken(String username, Collection<? extends GrantedAuthority> authorities,
+            Integer tokenVersion) {
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + accessTokenExpirationMs);
 
@@ -45,12 +46,13 @@ public class JwtTokenProvider {
                 .issuedAt(currentDate)
                 .expiration(expireDate)
                 .claim("type", "access")
+                .claim("tokenVersion", tokenVersion == null ? 0 : tokenVersion)
                 .claim("authorities", authoritiesList)
                 .signWith(jwtSecret)
                 .compact();
     }
 
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken(String username, Integer tokenVersion) {
         Date currentDate = new Date();
         Date expireDate = new Date(currentDate.getTime() + refreshTokenExpirationMs);
 
@@ -59,6 +61,7 @@ public class JwtTokenProvider {
                 .issuedAt(currentDate)
                 .expiration(expireDate)
                 .claim("type", "refresh")
+                .claim("tokenVersion", tokenVersion == null ? 0 : tokenVersion)
                 .signWith(jwtSecret)
                 .compact();
     }
@@ -69,6 +72,11 @@ public class JwtTokenProvider {
 
     public String getTokenType(String token) {
         return getClaims(token).get("type", String.class);
+    }
+
+    public int getTokenVersion(String token) {
+        Integer tokenVersion = getClaims(token).get("tokenVersion", Integer.class);
+        return tokenVersion == null ? 0 : tokenVersion;
     }
 
     public boolean validateToken(String token) {

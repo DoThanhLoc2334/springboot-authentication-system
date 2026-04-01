@@ -1,6 +1,6 @@
 package com.dtl.springboot_auth_system.service;
 
-import com.dtl.springboot_auth_system.dto.request.UserRequest;
+import com.dtl.springboot_auth_system.dto.request.UpdateUserRequest;
 import com.dtl.springboot_auth_system.exception.ForbiddenOperationException;
 import com.dtl.springboot_auth_system.mapper.UserMapper;
 import com.dtl.springboot_auth_system.model.Role;
@@ -42,10 +42,9 @@ class UserServiceImplTest {
     @Test
     void shouldPreventAdminFromDisablingOwnAccount() {
         User currentUser = buildAdminUser(1L, "admin");
-        UserRequest request = new UserRequest();
+        UpdateUserRequest request = new UpdateUserRequest();
         request.setUsername("admin");
         request.setEmail("admin@gmail.com");
-        request.setPassword("new-password");
         request.setEnabled(false);
         request.setRoles(Set.of(RoleConstants.ADMIN));
 
@@ -59,10 +58,9 @@ class UserServiceImplTest {
     @Test
     void shouldPreventAdminFromRemovingOwnAdminRole() {
         User currentUser = buildAdminUser(1L, "admin");
-        UserRequest request = new UserRequest();
+        UpdateUserRequest request = new UpdateUserRequest();
         request.setUsername("admin");
         request.setEmail("admin@gmail.com");
-        request.setPassword("new-password");
         request.setEnabled(true);
         request.setRoles(Set.of(RoleConstants.USER));
 
@@ -90,6 +88,7 @@ class UserServiceImplTest {
         user.setEmail(username + "@gmail.com");
         user.setPassword("encoded-password");
         user.setEnabled(true);
+        user.setTokenVersion(0);
         user.setRoles(Set.of(new Role(RoleConstants.ADMIN)));
         try {
             var field = User.class.getDeclaredField("id");

@@ -3,7 +3,8 @@ package com.dtl.springboot_auth_system.controller;
 import com.dtl.springboot_auth_system.dto.UserDTO;
 import com.dtl.springboot_auth_system.dto.request.AdminChangePasswordRequest;
 import com.dtl.springboot_auth_system.dto.request.ChangePasswordRequest;
-import com.dtl.springboot_auth_system.dto.request.UserRequest;
+import com.dtl.springboot_auth_system.dto.request.CreateUserRequest;
+import com.dtl.springboot_auth_system.dto.request.UpdateUserRequest;
 import com.dtl.springboot_auth_system.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -54,13 +55,13 @@ public class UserController {
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDTO createUser(@Valid @RequestBody UserRequest request) {
+    public UserDTO createUser(@Valid @RequestBody CreateUserRequest request) {
         return userService.createUser(request);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public UserDTO updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest request) {
+    public UserDTO updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         return userService.updateUser(id, request);
     }
 

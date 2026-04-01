@@ -33,6 +33,7 @@ public class DataSeeder {
     @PostConstruct
     public void init() {
         seedRoles();
+        normalizeUserTokenVersions();
         seedAdminUser();
     }
 
@@ -60,5 +61,14 @@ public class DataSeeder {
         admin.setRoles(Set.of(adminRole));
 
         userRepository.save(admin);
+    }
+
+    private void normalizeUserTokenVersions() {
+        userRepository.findAll().stream()
+                .filter(user -> user.getTokenVersion() == null)
+                .forEach(user -> {
+                    user.setTokenVersion(0);
+                    userRepository.save(user);
+                });
     }
 }

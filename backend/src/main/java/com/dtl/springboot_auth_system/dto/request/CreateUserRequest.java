@@ -4,10 +4,12 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
 import java.util.Set;
 
 @Data
-public class UserRequest {
+public class CreateUserRequest {
+
     @NotBlank(message = "Username khong duoc de trong")
     @Size(min = 3, max = 50, message = "Username phai tu 3 den 50 ky tu")
     private String username;

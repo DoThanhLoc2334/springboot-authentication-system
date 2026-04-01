@@ -1,7 +1,8 @@
 package com.dtl.springboot_auth_system.mapper;
 
 import com.dtl.springboot_auth_system.dto.UserDTO;
-import com.dtl.springboot_auth_system.dto.request.UserRequest;
+import com.dtl.springboot_auth_system.dto.request.CreateUserRequest;
+import com.dtl.springboot_auth_system.dto.request.UpdateUserRequest;
 import com.dtl.springboot_auth_system.exception.ResourceNotFoundException;
 import com.dtl.springboot_auth_system.model.Role;
 import com.dtl.springboot_auth_system.model.User;
@@ -36,30 +37,38 @@ public class UserMapper {
         return dto;
     }
 
-    public User toEntity(UserRequest request) {
+    public User toEntity(CreateUserRequest request) {
         User user = new User();
-        updateEntity(user, request);
+        user.setUsername(request.getUsername());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEnabled(request.isEnabled());
+        user.setRoles(resolveRolesOrDefault(request.getRoles()));
         return user;
     }
 
-    public void updateEntity(User user, UserRequest request) {
+    public void updateEntity(User user, UpdateUserRequest request) {
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
         }
         user.setEnabled(request.isEnabled());
+        if (request.getRoles() != null) {
+            user.setRoles(resolveRolesOrDefault(request.getRoles()));
+        }
+    }
 
-        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
-            Set<Role> roles = request.getRoles().stream()
+    private Set<Role> resolveRolesOrDefault(Set<String> roleNames) {
+        if (roleNames != null && !roleNames.isEmpty()) {
+            return roleNames.stream()
                     .map(this::findRoleByName)
                     .collect(Collectors.toSet());
-            user.setRoles(roles);
-        } else {
-            Set<Role> defaultRoles = new HashSet<>();
-            defaultRoles.add(findDefaultUserRole());
-            user.setRoles(defaultRoles);
         }
+
+        Set<Role> defaultRoles = new HashSet<>();
+        defaultRoles.add(findDefaultUserRole());
+        return defaultRoles;
     }
 
     private Role findDefaultUserRole() {

@@ -21,7 +21,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,7 +36,6 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
-    private final UserDetailsService userDetailsService;
 
     @Override
     @Transactional
@@ -77,9 +75,13 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String username = authentication.getName();
+        User user = findUserByUsername(username);
 
-        String accessToken = tokenProvider.generateAccessToken(username, authentication.getAuthorities());
-        String refreshToken = tokenProvider.generateRefreshToken(username);
+        String accessToken = tokenProvider.generateAccessToken(
+                username,
+                authentication.getAuthorities(),
+                user.getTokenVersion());
+        String refreshToken = tokenProvider.generateRefreshToken(username, user.getTokenVersion());
 
         return new JwtResponse(accessToken, refreshToken);
     }
@@ -92,18 +94,50 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String username = tokenProvider.getUsernameFromToken(refreshToken);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        if (!userDetails.isEnabled()) {
+        User user = findUserByUsername(username);
+        if (!user.isEnabled()) {
             throw new InvalidCredentialsException("Refresh token cannot be used for a disabled account.");
         }
-        String accessToken = tokenProvider.generateAccessToken(username, userDetails.getAuthorities());
-        String rotatedRefreshToken = tokenProvider.generateRefreshToken(username);
+        int tokenVersion = tokenProvider.getTokenVersion(refreshToken);
+        if (user.getTokenVersion() == null || user.getTokenVersion() != tokenVersion) {
+            throw new InvalidCredentialsException("Refresh token is invalid or has been revoked.");
+        }
+
+        UserDetails userDetails = buildUserDetails(user);
+        String accessToken = tokenProvider.generateAccessToken(username, userDetails.getAuthorities(), user.getTokenVersion());
+        String rotatedRefreshToken = tokenProvider.generateRefreshToken(username, user.getTokenVersion());
 
         return new JwtResponse(accessToken, rotatedRefreshToken);
     }
 
     @Override
-    public void logout() {
+    @Transactional
+    public void logoutCurrentUser() {
+        User currentUser = getAuthenticatedUser();
+        int currentTokenVersion = currentUser.getTokenVersion() == null ? 0 : currentUser.getTokenVersion();
+        currentUser.setTokenVersion(currentTokenVersion + 1);
+        userRepository.save(currentUser);
         SecurityContextHolder.clearContext();
+    }
+
+    private User findUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid or expired token."));
+    }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !(authentication.getPrincipal() instanceof UserDetails userDetails)) {
+            throw new InvalidCredentialsException("Authentication is required.");
+        }
+        return findUserByUsername(userDetails.getUsername());
+    }
+
+    private UserDetails buildUserDetails(User user) {
+        return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
+                .password(user.getPassword())
+                .authorities(user.getRoles().stream().map(Role::getName).toArray(String[]::new))
+                .disabled(!user.isEnabled())
+                .build();
     }
 }

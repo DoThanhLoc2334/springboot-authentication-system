@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +14,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import com.dtl.springboot_auth_system.repository.UserRepository;
+import com.dtl.springboot_auth_system.model.User;
 
 import java.io.IOException;
 
@@ -23,6 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider tokenProvider;
     private final CustomUserDetailsService userDetailsService;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,7 +41,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     && tokenProvider.validateAccessToken(jwt)) {
 
                 String username = tokenProvider.getUsernameFromToken(jwt);
+                int tokenVersion = tokenProvider.getTokenVersion(jwt);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                User user = userRepository.findByUsername(username).orElse(null);
+
+                if (!userDetails.isEnabled()) {
+                    throw new DisabledException("User account is disabled.");
+                }
+                if (user == null || user.getTokenVersion() == null || user.getTokenVersion() != tokenVersion) {
+                    throw new IllegalStateException("Token has been revoked.");
+                }
 
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());

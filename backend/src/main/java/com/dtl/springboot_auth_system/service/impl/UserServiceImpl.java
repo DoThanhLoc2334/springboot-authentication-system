@@ -1,7 +1,8 @@
 package com.dtl.springboot_auth_system.service.impl;
 
 import com.dtl.springboot_auth_system.dto.UserDTO;
-import com.dtl.springboot_auth_system.dto.request.UserRequest;
+import com.dtl.springboot_auth_system.dto.request.CreateUserRequest;
+import com.dtl.springboot_auth_system.dto.request.UpdateUserRequest;
 import com.dtl.springboot_auth_system.exception.ForbiddenOperationException;
 import com.dtl.springboot_auth_system.exception.ResourceNotFoundException;
 import com.dtl.springboot_auth_system.exception.UserAlreadyExistsException;
@@ -58,7 +59,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDTO createUser(UserRequest request) {
+    public UserDTO createUser(CreateUserRequest request) {
         // Check if username or email already exists
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new UserAlreadyExistsException("Username already exists: " + request.getUsername());
@@ -73,7 +74,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDTO updateUser(Long id, UserRequest request) {
+    public UserDTO updateUser(Long id, UpdateUserRequest request) {
         User user = findUserById(id);
         User currentUser = getAuthenticatedUser();
 
@@ -88,7 +89,11 @@ public class UserServiceImpl implements UserService {
         }
 
         validateSelfAdminUpdate(user, currentUser, request);
+        boolean passwordChanged = request.getPassword() != null && !request.getPassword().isBlank();
         userMapper.updateEntity(user, request);
+        if (passwordChanged) {
+            bumpTokenVersion(user);
+        }
         return userMapper.toDto(userRepository.save(user));
     }
 
@@ -109,6 +114,7 @@ public class UserServiceImpl implements UserService {
     public void changePassword(Long id, String newPassword) {
         User user = findUserById(id);
         user.setPassword(passwordEncoder.encode(newPassword));
+        bumpTokenVersion(user);
         userRepository.save(user);
     }
 
@@ -124,6 +130,7 @@ public class UserServiceImpl implements UserService {
         }
 
         currentUser.setPassword(passwordEncoder.encode(newPassword));
+        bumpTokenVersion(currentUser);
         userRepository.save(currentUser);
     }
 
@@ -136,6 +143,7 @@ public class UserServiceImpl implements UserService {
             throw new ForbiddenOperationException("You cannot disable your own account.");
         }
         user.setEnabled(!user.isEnabled());
+        bumpTokenVersion(user);
         userRepository.save(user);
     }
 
@@ -149,7 +157,7 @@ public class UserServiceImpl implements UserService {
         throw new ResourceNotFoundException("No authenticated user found");
     }
 
-    private void validateSelfAdminUpdate(User targetUser, User currentUser, UserRequest request) {
+    private void validateSelfAdminUpdate(User targetUser, User currentUser, UpdateUserRequest request) {
         if (!targetUser.getId().equals(currentUser.getId())) {
             return;
         }
@@ -159,5 +167,10 @@ public class UserServiceImpl implements UserService {
         if (request.getRoles() != null && !request.getRoles().contains(RoleConstants.ADMIN)) {
             throw new ForbiddenOperationException("You cannot remove your own admin role.");
         }
+    }
+
+    private void bumpTokenVersion(User user) {
+        int currentTokenVersion = user.getTokenVersion() == null ? 0 : user.getTokenVersion();
+        user.setTokenVersion(currentTokenVersion + 1);
     }
 }

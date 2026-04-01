@@ -1,7 +1,8 @@
 package com.dtl.springboot_auth_system.service;
 
 import com.dtl.springboot_auth_system.dto.UserDTO;
-import com.dtl.springboot_auth_system.dto.request.UserRequest;
+import com.dtl.springboot_auth_system.dto.request.CreateUserRequest;
+import com.dtl.springboot_auth_system.dto.request.UpdateUserRequest;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +17,9 @@ public interface UserService {
 
     UserDTO getUserById(Long id);
 
-    UserDTO createUser(UserRequest request);
+    UserDTO createUser(CreateUserRequest request);
 
-    UserDTO updateUser(Long id, UserRequest request);
+    UserDTO updateUser(Long id, UpdateUserRequest request);
 
     void deleteUser(Long id);
 

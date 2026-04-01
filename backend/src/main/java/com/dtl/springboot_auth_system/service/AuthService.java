@@ -11,5 +11,5 @@ public interface AuthService {
 
     JwtResponse refreshToken(RefreshTokenRequest request);
 
-    void logout();
+    void logoutCurrentUser();
 }
