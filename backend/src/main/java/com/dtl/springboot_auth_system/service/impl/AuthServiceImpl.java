@@ -2,7 +2,9 @@ package com.dtl.springboot_auth_system.service.impl;
 
 import com.dtl.springboot_auth_system.dto.response.JwtResponse;
 import com.dtl.springboot_auth_system.dto.request.LoginRequest;
+import com.dtl.springboot_auth_system.dto.request.RefreshTokenRequest;
 import com.dtl.springboot_auth_system.dto.request.RegisterRequest;
+import com.dtl.springboot_auth_system.exception.InvalidCredentialsException;
 import com.dtl.springboot_auth_system.model.Role;
 import com.dtl.springboot_auth_system.model.User;
 import com.dtl.springboot_auth_system.exception.ResourceNotFoundException;
@@ -13,10 +15,13 @@ import com.dtl.springboot_auth_system.security.JwtTokenProvider;
 import com.dtl.springboot_auth_system.service.AuthService;
 import com.dtl.springboot_auth_system.util.RoleConstants;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +37,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserDetailsService userDetailsService;
 
     @Override
     @Transactional
@@ -58,10 +64,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public JwtResponse login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsernameOrEmail(),
-                        request.getPassword()));
+        Authentication authentication;
+        try {
+            authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsernameOrEmail(),
+                            request.getPassword()));
+        } catch (AuthenticationException ex) {
+            throw new InvalidCredentialsException("Invalid username/email or password.");
+        }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -71,5 +82,28 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = tokenProvider.generateRefreshToken(username);
 
         return new JwtResponse(accessToken, refreshToken);
+    }
+
+    @Override
+    public JwtResponse refreshToken(RefreshTokenRequest request) {
+        String refreshToken = request.getRefreshToken();
+        if (!tokenProvider.validateRefreshToken(refreshToken)) {
+            throw new InvalidCredentialsException("Refresh token is invalid or expired.");
+        }
+
+        String username = tokenProvider.getUsernameFromToken(refreshToken);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        if (!userDetails.isEnabled()) {
+            throw new InvalidCredentialsException("Refresh token cannot be used for a disabled account.");
+        }
+        String accessToken = tokenProvider.generateAccessToken(username, userDetails.getAuthorities());
+        String rotatedRefreshToken = tokenProvider.generateRefreshToken(username);
+
+        return new JwtResponse(accessToken, rotatedRefreshToken);
+    }
+
+    @Override
+    public void logout() {
+        SecurityContextHolder.clearContext();
     }
 }
