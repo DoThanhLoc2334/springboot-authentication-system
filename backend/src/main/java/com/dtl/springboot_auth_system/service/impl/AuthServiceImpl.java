@@ -4,7 +4,11 @@ import com.dtl.springboot_auth_system.dto.response.JwtResponse;
 import com.dtl.springboot_auth_system.dto.request.LoginRequest;
 import com.dtl.springboot_auth_system.dto.request.RefreshTokenRequest;
 import com.dtl.springboot_auth_system.dto.request.RegisterRequest;
+import com.dtl.springboot_auth_system.dto.request.ForgotPasswordRequest;
+import com.dtl.springboot_auth_system.dto.request.VerifyOtpRequest;
+import com.dtl.springboot_auth_system.dto.request.ResetPasswordRequest;
 import com.dtl.springboot_auth_system.exception.InvalidCredentialsException;
+import com.dtl.springboot_auth_system.exception.InvalidOtpException;
 import com.dtl.springboot_auth_system.model.Role;
 import com.dtl.springboot_auth_system.model.User;
 import com.dtl.springboot_auth_system.exception.ResourceNotFoundException;
@@ -13,6 +17,7 @@ import com.dtl.springboot_auth_system.repository.RoleRepository;
 import com.dtl.springboot_auth_system.repository.UserRepository;
 import com.dtl.springboot_auth_system.security.JwtTokenProvider;
 import com.dtl.springboot_auth_system.service.AuthService;
+import com.dtl.springboot_auth_system.service.EmailService;
 import com.dtl.springboot_auth_system.util.RoleConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +30,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.Random;
 import java.util.Set;
 
 @Service
@@ -36,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -139,5 +147,69 @@ public class AuthServiceImpl implements AuthService {
                 .authorities(user.getRoles().stream().map(Role::getName).toArray(String[]::new))
                 .disabled(!user.isEnabled())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void forgotPassword(ForgotPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
+
+        // Generate OTP (6 digits)
+        String otp = String.format("%06d", new Random().nextInt(1000000));
+        
+        // Set OTP and expiry (valid for 10 minutes)
+        user.setResetOtp(otp);
+        user.setResetOtpExpiry(LocalDateTime.now().plusMinutes(10));
+        
+        userRepository.save(user);
+        
+        // Send OTP email
+        emailService.sendOtpEmail(user.getEmail(), otp);
+    }
+
+    @Override
+    @Transactional
+    public void verifyOtp(VerifyOtpRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
+
+        // Check if OTP exists and hasn't expired
+        if (user.getResetOtp() == null || user.getResetOtpExpiry() == null) {
+            throw new InvalidOtpException("OTP not requested. Please request a new OTP.");
+        }
+
+        if (LocalDateTime.now().isAfter(user.getResetOtpExpiry())) {
+            throw new InvalidOtpException("OTP has expired. Please request a new one.");
+        }
+
+        if (!user.getResetOtp().equals(request.getOtp())) {
+            throw new InvalidOtpException("Invalid OTP. Please enter the correct OTP.");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        // Verify OTP first
+        verifyOtp(new VerifyOtpRequest(request.getEmail(), request.getOtp()));
+
+        // Check password and confirm password match
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new InvalidCredentialsException("New password and confirm password do not match.");
+        }
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
+
+        // Update password and clear OTP
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setResetOtp(null);
+        user.setResetOtpExpiry(null);
+
+        userRepository.save(user);
+
+        // Send success email
+        emailService.sendPasswordResetSuccessEmail(user.getEmail(), user.getUsername());
     }
 }
