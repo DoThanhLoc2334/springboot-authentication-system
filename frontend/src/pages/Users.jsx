@@ -32,7 +32,7 @@ const Users = () => {
       setUsers(response.data || []);
     } catch (error) {
       message.error(
-        getApiErrorMessage(error, "Khong the tai danh sach nguoi dung."),
+        getApiErrorMessage(error, "Could not load the user list."),
       );
     } finally {
       setLoading(false);
@@ -43,11 +43,11 @@ const Users = () => {
     setStatusUpdateLoading((prev) => ({ ...prev, [userId]: true }));
     try {
       await api.put(`/users/${userId}/status`);
-      message.success(`Trang thai nguoi dung da cap nhat.`);
+      message.success("User status updated successfully.");
       fetchUsers();
     } catch (error) {
       message.error(
-        getApiErrorMessage(error, "Khong the cap nhat trang thai."),
+        getApiErrorMessage(error, "Could not update the user status."),
       );
     } finally {
       setStatusUpdateLoading((prev) => ({ ...prev, [userId]: false }));
@@ -80,12 +80,10 @@ const Users = () => {
     },
     {
       title: "Role",
-      dataIndex: "role",
-      key: "role",
+      dataIndex: "roles",
+      key: "roles",
       render: (_, record) => {
-        const isAdmin = record.authorities?.some(
-          (a) => a.authority === "ROLE_ADMIN",
-        );
+        const isAdmin = record.roles?.includes("ROLE_ADMIN");
         return (
           <Tag color={isAdmin ? "red" : "blue"}>
             {isAdmin ? "ADMIN" : "USER"}
@@ -94,23 +92,23 @@ const Users = () => {
       },
     },
     {
-      title: "Trang thai",
-      dataIndex: "active",
-      key: "active",
-      render: (active, record) => (
+      title: "Status",
+      dataIndex: "enabled",
+      key: "enabled",
+      render: (enabled, record) => (
         <Button
           size="small"
           loading={statusUpdateLoading[record.id]}
-          onClick={() => handleStatusChange(record.id, active)}
-          type={active ? "primary" : "dashed"}
-          danger={!active}
+          onClick={() => handleStatusChange(record.id, enabled)}
+          type={enabled ? "primary" : "dashed"}
+          danger={!enabled}
         >
-          {active ? "Hoat dong" : "Khong hoat dong"}
+          {enabled ? "Active" : "Inactive"}
         </Button>
       ),
     },
     {
-      title: "Thao tac",
+      title: "Actions",
       key: "action",
       render: (_, record) => (
         <Space>
@@ -119,7 +117,7 @@ const Users = () => {
             icon={<EditOutlined />}
             size="small"
             disabled
-            title="Se phat trien sau"
+            title="Coming soon"
           />
         </Space>
       ),
@@ -128,18 +126,18 @@ const Users = () => {
 
   return (
     <div>
-      <Title level={2}>Quan ly Nguoi Dung</Title>
+      <Title level={2}>User Management</Title>
 
       <div style={{ marginBottom: 16, display: "flex", gap: 8 }}>
         <Input
-          placeholder="Tim kiem theo username hoac email..."
+          placeholder="Search by username or email..."
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
           allowClear
           style={{ flex: 1 }}
         />
         <Button type="primary" onClick={fetchUsers}>
-          Tai lai
+          Reload
         </Button>
       </div>
 

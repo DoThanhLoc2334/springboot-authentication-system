@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/api";
 import AuthPageShell from "../components/AuthPageShell";
 import { ROUTES } from "../constants/routes";
-import { setToken } from "../utils/auth";
+import { setAuthSession } from "../utils/auth";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
 const { Text } = Typography;
@@ -19,7 +19,7 @@ const Login = () => {
 
     try {
       const response = await api.post("/auth/login", values);
-      setToken(response.data.accessToken);
+      setAuthSession(response.data);
       message.success("Login successful.");
       navigate(ROUTES.dashboard, { replace: true });
     } catch (error) {

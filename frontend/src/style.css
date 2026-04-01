@@ -74,6 +74,10 @@ a {
 
 .admin-header {
   border-bottom: 1px solid rgba(23, 32, 51, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-inline: 24px;
 }
 
 .page-panel {
@@ -131,6 +135,18 @@ a {
   display: block;
   margin-bottom: 10px;
   font-size: 34px;
+}
+
+.admin-header__actions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 @media (max-width: 768px) {
