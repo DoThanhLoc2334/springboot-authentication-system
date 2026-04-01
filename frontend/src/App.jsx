@@ -5,6 +5,7 @@ import { ROUTES } from "./constants/routes";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
 import Users from "./pages/Users";
 import { isAuthenticated } from "./utils/auth";
 
@@ -16,6 +17,7 @@ function App() {
       <Routes>
         <Route path={ROUTES.login} element={<Login />} />
         <Route path={ROUTES.register} element={<Register />} />
+        <Route path={ROUTES.forgotPassword} element={<ForgotPassword />} />
         <Route
           path={ROUTES.admin}
           element={

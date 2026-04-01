@@ -70,6 +70,16 @@ const Login = () => {
           </Button>
         </Form.Item>
 
+        <div style={{ textAlign: "center", marginBottom: 12 }}>
+          <Button
+            type="link"
+            onClick={() => navigate(ROUTES.forgotPassword)}
+            style={{ padding: 0, fontSize: 12 }}
+          >
+            Forgot password?
+          </Button>
+        </div>
+
         <div className="auth-footer">
           <Text type="secondary">Don't have an account?</Text>
           <Button
