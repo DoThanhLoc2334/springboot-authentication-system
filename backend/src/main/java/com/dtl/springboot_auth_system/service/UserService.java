@@ -25,6 +25,7 @@ public interface UserService {
     void changePassword(Long id, String newPassword);
 
     void toggleUserStatus(Long id);
-
+    
     UserDTO getCurrentUser();
+    
 }

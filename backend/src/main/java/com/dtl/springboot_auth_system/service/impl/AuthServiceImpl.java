@@ -20,7 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import com.dtl.springboot_auth_system.exception.InvalidCredentialsException;
 import java.util.Set;
 
 @Service
@@ -71,5 +72,36 @@ public class AuthServiceImpl implements AuthService {
         String refreshToken = tokenProvider.generateRefreshToken(username);
 
         return new JwtResponse(accessToken, refreshToken);
+    }
+
+    @Override
+    public JwtResponse refreshToken(String refreshToken) {
+
+        if (!tokenProvider.validateToken(refreshToken)) {
+            throw new InvalidCredentialsException("Invalid refresh token");
+        }
+
+        if (!"refresh".equals(tokenProvider.getTokenType(refreshToken))) {
+            throw new InvalidCredentialsException("Invalid token type");
+        }
+
+        String username = tokenProvider.getUsernameFromToken(refreshToken);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        String newAccessToken = tokenProvider.generateAccessToken(
+                username,
+                user.getRoles().stream()
+                        .map(role -> new SimpleGrantedAuthority(role.getName()))
+                        .toList());
+
+        return new JwtResponse(newAccessToken, refreshToken);
+
+    }
+
+    @Override
+    public void logout() {
+        // Hiện tại chưa làm gì (JWT stateless)
     }
 }

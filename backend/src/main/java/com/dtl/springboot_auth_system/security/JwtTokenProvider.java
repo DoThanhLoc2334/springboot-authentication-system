@@ -82,4 +82,13 @@ public class JwtTokenProvider {
             return false;
         }
     }
+
+    public String getTokenType(String token) {
+    return Jwts.parser()
+            .verifyWith(jwtSecret)
+            .build()
+            .parseSignedClaims(token)
+            .getPayload()
+            .get("type", String.class);
+}
 }
