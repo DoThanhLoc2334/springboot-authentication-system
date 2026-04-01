@@ -46,6 +46,7 @@ public class UserController {
     }
 
     @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
     public UserDTO getCurrentUser() {
         return userService.getCurrentUser();
     }
