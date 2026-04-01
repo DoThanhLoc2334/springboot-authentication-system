@@ -4,6 +4,10 @@ import com.dtl.springboot_auth_system.dto.response.JwtResponse;
 import com.dtl.springboot_auth_system.dto.request.LoginRequest;
 import com.dtl.springboot_auth_system.dto.request.RefreshTokenRequest;
 import com.dtl.springboot_auth_system.dto.request.RegisterRequest;
+import com.dtl.springboot_auth_system.dto.request.ForgotPasswordRequest;
+import com.dtl.springboot_auth_system.dto.request.VerifyOtpRequest;
+import com.dtl.springboot_auth_system.dto.request.ResetPasswordRequest;
+import com.dtl.springboot_auth_system.dto.response.OtpResponse;
 import com.dtl.springboot_auth_system.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -42,5 +46,23 @@ public class AuthController {
     public ResponseEntity<String> logout() {
         authService.logoutCurrentUser();
         return ResponseEntity.ok("Logout successful. Remove tokens on the client side.");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<OtpResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request);
+        return ResponseEntity.ok(new OtpResponse("OTP has been sent to your email. Please check your inbox."));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<OtpResponse> verifyOtp(@Valid @RequestBody VerifyOtpRequest request) {
+        authService.verifyOtp(request);
+        return ResponseEntity.ok(new OtpResponse("OTP verified successfully."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<OtpResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(new OtpResponse("Password reset successfully. You can now log in with your new password."));
     }
 }

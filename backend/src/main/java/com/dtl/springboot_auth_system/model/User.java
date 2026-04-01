@@ -2,6 +2,7 @@ package com.dtl.springboot_auth_system.model;
 
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,6 +27,10 @@ public class User {
 
     @Column(nullable = false)
     private Integer tokenVersion = 0;
+
+    private String resetOtp;
+
+    private LocalDateTime resetOtpExpiry;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -91,5 +96,21 @@ public class User {
             roles = new HashSet<>();
         }
         roles.add(role);
+    }
+
+    public String getResetOtp() {
+        return resetOtp;
+    }
+
+    public void setResetOtp(String resetOtp) {
+        this.resetOtp = resetOtp;
+    }
+
+    public LocalDateTime getResetOtpExpiry() {
+        return resetOtpExpiry;
+    }
+
+    public void setResetOtpExpiry(LocalDateTime resetOtpExpiry) {
+        this.resetOtpExpiry = resetOtpExpiry;
     }
 }
