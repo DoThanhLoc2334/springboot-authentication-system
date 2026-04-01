@@ -1,7 +1,9 @@
-import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
+import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import {
   Button,
+  Descriptions,
   Input,
+  Modal,
   Space,
   Spin,
   Table,
@@ -20,6 +22,9 @@ const Users = () => {
   const [loading, setLoading] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [statusUpdateLoading, setStatusUpdateLoading] = useState({});
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -52,6 +57,28 @@ const Users = () => {
     } finally {
       setStatusUpdateLoading((prev) => ({ ...prev, [userId]: false }));
     }
+  };
+
+  const handleViewDetails = async (userId) => {
+    setDetailsOpen(true);
+    setDetailsLoading(true);
+
+    try {
+      const response = await api.get(`/users/${userId}`);
+      setSelectedUser(response.data);
+    } catch (error) {
+      setDetailsOpen(false);
+      message.error(
+        getApiErrorMessage(error, "Could not load the user details."),
+      );
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const closeDetailsModal = () => {
+    setDetailsOpen(false);
+    setSelectedUser(null);
   };
 
   const filteredUsers = users.filter(
@@ -113,6 +140,13 @@ const Users = () => {
       render: (_, record) => (
         <Space>
           <Button
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => handleViewDetails(record.id)}
+          >
+            View Details
+          </Button>
+          <Button
             type="primary"
             icon={<EditOutlined />}
             size="small"
@@ -150,6 +184,51 @@ const Users = () => {
           bordered
         />
       </Spin>
+
+      <Modal
+        title="User Details"
+        open={detailsOpen}
+        onCancel={closeDetailsModal}
+        footer={[
+          <Button key="close" onClick={closeDetailsModal}>
+            Close
+          </Button>,
+        ]}
+        destroyOnHidden
+      >
+        <Spin spinning={detailsLoading}>
+          {selectedUser ? (
+            <Descriptions column={1} bordered size="small">
+              <Descriptions.Item label="ID">
+                {selectedUser.id}
+              </Descriptions.Item>
+              <Descriptions.Item label="Username">
+                {selectedUser.username}
+              </Descriptions.Item>
+              <Descriptions.Item label="Email">
+                {selectedUser.email}
+              </Descriptions.Item>
+              <Descriptions.Item label="Status">
+                <Tag color={selectedUser.enabled ? "green" : "default"}>
+                  {selectedUser.enabled ? "Active" : "Inactive"}
+                </Tag>
+              </Descriptions.Item>
+              <Descriptions.Item label="Roles">
+                <Space wrap>
+                  {(selectedUser.roles || []).map((role) => (
+                    <Tag
+                      key={role}
+                      color={role === "ROLE_ADMIN" ? "red" : "blue"}
+                    >
+                      {role}
+                    </Tag>
+                  ))}
+                </Space>
+              </Descriptions.Item>
+            </Descriptions>
+          ) : null}
+        </Spin>
+      </Modal>
     </div>
   );
 };
