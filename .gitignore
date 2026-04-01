@@ -36,3 +36,4 @@ build/
 .vscode/
 docs/~$stem-Description.docx
 application.properties
+src/main/resources/application.properties

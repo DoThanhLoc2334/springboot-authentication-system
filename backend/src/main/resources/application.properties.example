@@ -1,0 +1,19 @@
+# Database Configuration - Replace with your local settings
+spring.datasource.url=${DB_URL:jdbc:mysql://localhost:3306/auth_system}
+spring.datasource.username=${DB_USERNAME:root}
+spring.datasource.password=${DB_PASSWORD:your_password_here}
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+# JPA / Hibernate
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
+# Security & JWT - Change this in production!
+app.jwt.secret=${JWT_SECRET:generate_a_random_32_chars_string_here}
+app.jwt.expiration-ms=86400000
+app.cors.allowed-origins=http://localhost:5173
+
+# Seed Data
+app.seed.admin.username=admin
+app.seed.admin.email=admin@gmail.com
+app.seed.admin.password=123
