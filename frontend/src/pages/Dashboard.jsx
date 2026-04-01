@@ -1,18 +1,18 @@
 const summaryCards = [
   {
-    title: "Products",
-    value: "120",
-    description: "Dang duoc quan ly trong he thong.",
+    title: "Tai khoan",
+    value: "User admin",
+    description: "He thong dang tap trung vao quan ly nguoi dung.",
   },
   {
-    title: "Orders",
-    value: "45",
-    description: "Don hang moi trong ngay hom nay.",
+    title: "Phan quyen",
+    value: "2 vai tro",
+    description: "ROLE_ADMIN va ROLE_USER da san sang de su dung.",
   },
   {
-    title: "Categories",
-    value: "8",
-    description: "Nhom san pham san sang de mo rong.",
+    title: "Bao mat",
+    value: "JWT",
+    description: "Dang nhap va truy cap duoc bao ve bang token.",
   },
 ];
 
@@ -22,7 +22,7 @@ const Dashboard = () => {
       <div className="page-section-header">
         <div>
           <h2>Admin dashboard</h2>
-          <p>Theo doi nhanh tinh hinh van hanh cua cua hang.</p>
+          <p>Theo doi nhanh he thong quan ly nguoi dung va phan quyen.</p>
         </div>
       </div>
 

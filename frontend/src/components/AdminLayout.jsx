@@ -1,8 +1,6 @@
 import {
-  AppstoreOutlined,
   DashboardOutlined,
   LogoutOutlined,
-  ShoppingCartOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import { Layout, Menu, Typography, message, theme } from "antd";
@@ -28,16 +26,6 @@ const AdminLayout = () => {
       key: ROUTES.dashboard,
       icon: <DashboardOutlined />,
       label: "Tong quan",
-    },
-    {
-      key: ROUTES.categories,
-      icon: <AppstoreOutlined />,
-      label: "Danh muc",
-    },
-    {
-      key: ROUTES.products,
-      icon: <ShoppingCartOutlined />,
-      label: "San pham",
     },
     ...(admin
       ? [
@@ -79,7 +67,7 @@ const AdminLayout = () => {
       >
         <div className="admin-brand">
           <Text strong style={{ color: "inherit" }}>
-            {collapsed ? "HS" : "HUTECH STORE"}
+            {collapsed ? "UM" : "USER MANAGER"}
           </Text>
         </div>
         <Menu

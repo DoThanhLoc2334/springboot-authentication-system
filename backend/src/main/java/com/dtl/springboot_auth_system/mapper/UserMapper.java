@@ -2,9 +2,11 @@ package com.dtl.springboot_auth_system.mapper;
 
 import com.dtl.springboot_auth_system.dto.UserDTO;
 import com.dtl.springboot_auth_system.dto.request.UserRequest;
+import com.dtl.springboot_auth_system.exception.ResourceNotFoundException;
 import com.dtl.springboot_auth_system.model.Role;
 import com.dtl.springboot_auth_system.model.User;
 import com.dtl.springboot_auth_system.repository.RoleRepository;
+import com.dtl.springboot_auth_system.util.RoleConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -50,17 +52,23 @@ public class UserMapper {
 
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             Set<Role> roles = request.getRoles().stream()
-                    .map(roleName -> roleRepository.findByName(roleName)
-                            .orElseThrow(() -> new RuntimeException("Role not found: " + roleName)))
+                    .map(this::findRoleByName)
                     .collect(Collectors.toSet());
             user.setRoles(roles);
         } else {
-            // Default role
-            Role userRole = roleRepository.findByName("ROLE_USER")
-                    .orElseThrow(() -> new RuntimeException("Default role ROLE_USER not found"));
             Set<Role> defaultRoles = new HashSet<>();
-            defaultRoles.add(userRole);
+            defaultRoles.add(findDefaultUserRole());
             user.setRoles(defaultRoles);
         }
+    }
+
+    private Role findDefaultUserRole() {
+        return roleRepository.findByName(RoleConstants.USER)
+                .orElseThrow(() -> new ResourceNotFoundException("Default user role was not found."));
+    }
+
+    private Role findRoleByName(String roleName) {
+        return roleRepository.findByName(roleName)
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName));
     }
 }
